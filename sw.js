@@ -1,4 +1,4 @@
-const CACHE = 'expocap-v1';
+const CACHE = 'expocap-v2';
 const ASSETS = [
   './index.html',
   './manifest.json',
