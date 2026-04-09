@@ -8,9 +8,10 @@
 <meta name="theme-color" content="#080808">
 <link rel="manifest" href="manifest.json">
 <title>ExpoCapture</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@500;700;800&display=swap');
 
+<script src="./jszip.min.js"></script>
+
+<style>
   :root {
     --bg: #080808;
     --s0: #0e0e0e;
@@ -36,6 +37,10 @@
     --text3: #444;
     --radius: 6px;
     --radius-sm: 4px;
+    
+    /* Системные шрифты для офлайна */
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -43,7 +48,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Space Mono', monospace;
+    font-family: var(--font-mono);
     height: 100dvh;
     display: flex;
     flex-direction: column;
@@ -62,10 +67,10 @@
   }
   .header-left { display: flex; align-items: baseline; gap: 10px; }
   .logo {
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: var(--font-ui);
     font-weight: 800;
     font-size: 28px;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     color: var(--accent);
     text-transform: uppercase;
     line-height: 1;
@@ -122,7 +127,7 @@
   .stat:last-child { border-right: none; }
   .stat-val {
     display: block;
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: var(--font-ui);
     font-weight: 700;
     font-size: 22px;
     color: var(--text);
@@ -131,6 +136,12 @@
   .stat-val.c-accent { color: var(--accent); }
   .stat-val.c-orange { color: var(--orange); }
   .stat-val.c-blue   { color: var(--blue); font-size: 17px; }
+
+  /* ── WARNING BANNER ── */
+  .warning-banner { 
+    background: #4a0015; color: #ffab00; padding: 10px; text-align: center; font-size: 10px; font-family: var(--font-ui); font-weight: bold; border-bottom: 1px solid var(--red); display: none; flex-shrink: 0; animation: pulseBg 2s infinite; letter-spacing: 1px;
+  }
+  @keyframes pulseBg { 0%,100% { background: #4a0015; } 50% { background: #6a0015; } }
 
   /* ── BREADCRUMB ── */
   .breadcrumb {
@@ -187,7 +198,7 @@
   .item-meta { font-size: 8px; color: var(--text3); margin-top: 2px; letter-spacing: 0.3px; }
 
   .item-tag {
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: var(--font-ui);
     font-weight: 700;
     font-size: 10px;
     padding: 3px 8px;
@@ -218,10 +229,10 @@
     height: 50px;
     border: none;
     border-radius: var(--radius);
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: var(--font-ui);
     font-weight: 700;
     font-size: 14px;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -240,6 +251,9 @@
   .btn-sign    { background: var(--amber-bg); color: var(--amber); border: 1px solid #4a2c00; }
   .btn-photo   { background: var(--green-bg); color: var(--green); border: 1px solid #0a3a1a; }
   .btn-audio   { background: var(--purple-bg); color: var(--purple); border: 1px solid #1a1050; }
+  
+  .btn-zip { background: transparent; color: var(--blue); border: 1px solid var(--blue); height: 46px; font-size: 13px; margin-bottom: 2px;}
+  
   .btn-audio.recording {
     background: #200010;
     color: var(--red);
@@ -251,7 +265,7 @@
     50%      { box-shadow: 0 0 0 8px rgba(255,51,85,0); }
   }
 
-  /* ── SESSION CONTROLS (under stats) ── */
+  /* ── SESSION CONTROLS ── */
   .session-controls {
     display: flex;
     gap: 7px;
@@ -261,491 +275,140 @@
     background: var(--s0);
   }
   .sc-btn {
-    flex: 1;
-    height: 36px;
-    border: none;
-    border-radius: var(--radius);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 1.5px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    text-transform: uppercase;
-    transition: transform 0.07s, filter 0.07s;
+    flex: 1; height: 36px; border: none; border-radius: var(--radius);
+    font-family: var(--font-ui); font-weight: 700; font-size: 12px; letter-spacing: 1px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+    text-transform: uppercase; transition: transform 0.07s, filter 0.07s;
   }
   .sc-btn:active { transform: scale(0.96); filter: brightness(0.85); }
-  .sc-pause {
-    background: var(--s2);
-    color: var(--amber);
-    border: 1px solid #4a2c00;
-  }
-  .sc-pause.paused {
-    color: var(--green);
-    border-color: var(--green-dim);
-  }
-  .sc-stop {
-    background: var(--s2);
-    color: var(--red);
-    border: 1px solid #4a0015;
-  }
+  .sc-pause { background: var(--s2); color: var(--amber); border: 1px solid #4a2c00; }
+  .sc-pause.paused { color: var(--green); border-color: var(--green-dim); }
+  .sc-stop { background: var(--s2); color: var(--red); border: 1px solid #4a0015; }
 
   .btn-secondary-row { display: flex; gap: 7px; }
   .btn-log {
-    flex: 1; height: 38px;
-    background: transparent;
-    color: var(--text3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 1px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 5px;
-    text-transform: uppercase;
-    transition: color 0.15s, border-color 0.15s;
+    flex: 1; height: 38px; background: transparent; color: var(--text3); border: 1px solid var(--border);
+    border-radius: var(--radius); font-family: var(--font-ui); font-weight: 700; font-size: 12px;
+    letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+    text-transform: uppercase; transition: color 0.15s, border-color 0.15s;
   }
   .btn-log:active { color: var(--text2); border-color: var(--border2); }
 
   .btn-clear {
-    height: 38px;
-    width: 80px;
-    background: transparent;
-    color: var(--text3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 1px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 5px;
-    text-transform: uppercase;
-    transition: color 0.15s, border-color 0.15s;
+    height: 38px; width: 80px; background: transparent; color: var(--text3); border: 1px solid var(--border);
+    border-radius: var(--radius); font-family: var(--font-ui); font-weight: 700; font-size: 12px;
+    letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+    text-transform: uppercase; transition: color 0.15s, border-color 0.15s;
   }
   .btn-clear:active { color: var(--red); border-color: var(--red); }
 
-  .rec-timer { position: absolute; right: 10px; font-size: 10px; color: var(--red); font-weight: 700; font-family: 'Space Mono', monospace; }
+  .rec-timer { position: absolute; right: 10px; font-size: 10px; color: var(--red); font-weight: 700; font-family: var(--font-mono); }
 
   /* ── EMPTY ── */
   .empty {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    color: var(--text3);
-    font-size: 10px;
-    padding: 40px;
-    text-align: center;
-    letter-spacing: 0.5px;
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    color: var(--text3); font-size: 10px; padding: 40px; text-align: center; letter-spacing: 0.5px;
   }
   .empty-icon { font-size: 34px; opacity: 0.25; }
   .empty-hint { color: var(--text3); font-size: 9px; line-height: 1.8; }
 
   /* ── STATUS BAR ── */
   .status-bar {
-    padding: 4px 16px;
-    font-size: 8px;
-    color: var(--text3);
-    border-top: 1px solid var(--border);
-    letter-spacing: 0.5px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--s0);
-    text-transform: uppercase;
+    padding: 4px 16px; font-size: 8px; color: var(--text3); border-top: 1px solid var(--border);
+    letter-spacing: 0.5px; flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+    background: var(--s0); text-transform: uppercase;
   }
-  .status-dot {
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: var(--accent-dim);
-    flex-shrink: 0;
-  }
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-dim); flex-shrink: 0; }
   .status-dot.red { background: var(--red); animation: pulse 1s infinite; }
   .status-dot.amber { background: var(--amber); }
 
   /* ── TOAST ── */
   .toast {
-    position: fixed;
-    bottom: 120px;
-    left: 50%;
-    transform: translateX(-50%) translateY(12px);
-    background: var(--s2);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 10px;
-    letter-spacing: 0.5px;
-    opacity: 0;
-    transition: all 0.18s ease;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 200;
+    position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%) translateY(12px);
+    background: var(--s2); border: 1px solid var(--border2); color: var(--text); padding: 8px 16px;
+    border-radius: 20px; font-size: 10px; letter-spacing: 0.5px; opacity: 0; transition: all 0.18s ease;
+    pointer-events: none; white-space: nowrap; z-index: 200;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   #fileInput, #signInput { display: none; }
 
-  /* ── OVERLAY BASE ── */
+  /* ── OVERLAYS ── */
   .overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.9);
-    display: flex;
-    flex-direction: column;
-    z-index: 100;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; z-index: 100;
   }
   .overlay-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-    background: var(--s0);
+    padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center;
+    justify-content: space-between; flex-shrink: 0; background: var(--s0);
   }
-  .overlay-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800;
-    font-size: 24px;
-    letter-spacing: 2px;
-    color: var(--accent);
-    text-transform: uppercase;
-  }
+  .overlay-title { font-family: var(--font-ui); font-weight: 800; font-size: 24px; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
   .btn-close {
-    background: transparent;
-    border: 1px solid var(--border2);
-    color: var(--text2);
-    padding: 6px 14px;
-    border-radius: var(--radius-sm);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 1px;
-    cursor: pointer;
-    text-transform: uppercase;
+    background: transparent; border: 1px solid var(--border2); color: var(--text2); padding: 6px 14px;
+    border-radius: var(--radius-sm); font-family: var(--font-ui); font-weight: 700; font-size: 13px;
+    letter-spacing: 1px; cursor: pointer; text-transform: uppercase;
   }
   .btn-close:active { background: var(--s2); }
 
-  /* ── PREVIEW OVERLAY ── */
   .preview-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.96);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    padding: 20px;
-    gap: 16px;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.96); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; z-index: 100; padding: 20px; gap: 16px;
   }
   .preview-label { font-size: 9px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; }
-  .preview-overlay img {
-    max-width: 100%; max-height: 58dvh;
-    border-radius: var(--radius);
-    border: 1px solid var(--border2);
-    object-fit: contain;
-  }
+  .preview-overlay img { max-width: 100%; max-height: 58dvh; border-radius: var(--radius); border: 1px solid var(--border2); object-fit: contain; }
   .preview-actions { display: flex; gap: 12px; width: 100%; max-width: 400px; }
-  .btn-keep {
-    flex: 1; height: 52px;
-    background: var(--accent); color: #000;
-    border: none; border-radius: var(--radius);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800; font-size: 16px; letter-spacing: 1.5px;
-    cursor: pointer; text-transform: uppercase;
-  }
-  .btn-discard {
-    flex: 1; height: 52px;
-    background: transparent; color: var(--red);
-    border: 1px solid var(--red); border-radius: var(--radius);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800; font-size: 16px; letter-spacing: 1.5px;
-    cursor: pointer; text-transform: uppercase;
-  }
-  .btn-keep:active    { filter: brightness(0.88); }
-  .btn-discard:active { filter: brightness(0.88); }
-
-  /* ── CONFIRM OVERLAY ── */
-  .confirm-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.88);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 300;
-    padding: 30px;
-  }
-  .confirm-box {
-    background: var(--s1);
-    border: 1px solid var(--border2);
-    border-radius: var(--radius);
-    padding: 24px;
-    max-width: 320px; width: 100%;
-    text-align: center;
-  }
-  .confirm-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800; font-size: 18px; letter-spacing: 1.5px;
-    margin-bottom: 8px; color: var(--red);
-    text-transform: uppercase;
-  }
+  .btn-keep { flex: 1; height: 52px; background: var(--accent); color: #000; border: none; border-radius: var(--radius); font-family: var(--font-ui); font-weight: 800; font-size: 16px; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; }
+  .btn-discard { flex: 1; height: 52px; background: transparent; color: var(--red); border: 1px solid var(--red); border-radius: var(--radius); font-family: var(--font-ui); font-weight: 800; font-size: 16px; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; }
+  
+  .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 30px; }
+  .confirm-box { background: var(--s1); border: 1px solid var(--border2); border-radius: var(--radius); padding: 24px; max-width: 320px; width: 100%; text-align: center; }
+  .confirm-title { font-family: var(--font-ui); font-weight: 800; font-size: 18px; letter-spacing: 1px; margin-bottom: 8px; color: var(--red); text-transform: uppercase; }
   .confirm-text { font-size: 10px; color: var(--text2); margin-bottom: 20px; line-height: 1.8; }
   .confirm-btns { display: flex; gap: 10px; }
-  .btn-confirm-yes {
-    flex: 1; height: 44px;
-    background: var(--red); color: #fff;
-    border: none; border-radius: var(--radius);
-    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px;
-    cursor: pointer; text-transform: uppercase;
-  }
-  .btn-confirm-no {
-    flex: 1; height: 44px;
-    background: transparent; color: var(--text2);
-    border: 1px solid var(--border2); border-radius: var(--radius);
-    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px;
-    cursor: pointer; text-transform: uppercase;
-  }
+  .btn-confirm-yes { flex: 1; height: 44px; background: var(--red); color: #fff; border: none; border-radius: var(--radius); font-family: var(--font-ui); font-weight: 700; font-size: 14px; cursor: pointer; text-transform: uppercase; }
+  .btn-confirm-no { flex: 1; height: 44px; background: transparent; color: var(--text2); border: 1px solid var(--border2); border-radius: var(--radius); font-family: var(--font-ui); font-weight: 700; font-size: 14px; cursor: pointer; text-transform: uppercase; }
 
-  /* ── HISTORY OVERLAY ── */
-  .history-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.95);
-    display: flex; flex-direction: column;
-    z-index: 100;
-  }
-  .history-body {
-    flex: 1;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    -webkit-overflow-scrolling: touch;
-    padding: 12px 16px 20px;
-    min-height: 0;
-  }
-  .history-body::-webkit-scrollbar { width: 3px; }
-  .history-body::-webkit-scrollbar-track { background: transparent; }
-  .history-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-  .history-empty {
-    padding: 60px 20px;
-    text-align: center;
-    color: var(--text3);
-    font-size: 10px;
-    letter-spacing: 0.5px;
-  }
-
-  .history-day {
-    margin-bottom: 16px;
-  }
-  .history-day-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 0 6px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 8px;
-  }
-  .history-day-date {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800;
-    font-size: 16px;
-    color: var(--accent);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .history-day-stats {
-    display: flex; gap: 10px;
-    font-size: 8px;
-    color: var(--text3);
-    letter-spacing: 0.5px;
-  }
-  .history-day-stats span { display: flex; align-items: center; gap: 3px; }
-  .hds-val { color: var(--text2); font-weight: 700; }
-
-  .history-hour {
-    margin-left: 6px;
-    padding-left: 12px;
-    border-left: 1px solid var(--border);
-    margin-bottom: 10px;
-  }
-  .history-hour-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 12px;
-    color: var(--blue);
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-    position: relative;
-  }
-  .history-hour-label::before {
-    content: '';
-    position: absolute;
-    left: -15px;
-    top: 5px;
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--border2);
-  }
-
-  .history-tree-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 3px 0 3px 4px;
-    font-size: 9px;
-    color: var(--text3);
-  }
+  /* SETTINGS & HISTORY BODY */
+  .history-body, .settings-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px 20px; min-height: 0; }
+  .history-empty { padding: 60px 20px; text-align: center; color: var(--text3); font-size: 10px; }
+  .history-day { margin-bottom: 16px; }
+  .history-day-header { display: flex; align-items: center; gap: 10px; padding: 8px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .history-day-date { font-family: var(--font-ui); font-weight: 800; font-size: 14px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
+  .history-day-stats { display: flex; gap: 10px; font-size: 8px; color: var(--text3); }
+  .history-hour { margin-left: 6px; padding-left: 12px; border-left: 1px solid var(--border); margin-bottom: 10px; }
+  .history-hour-label { font-family: var(--font-ui); font-weight: 700; font-size: 12px; color: var(--blue); letter-spacing: 1px; margin-bottom: 4px; position: relative; }
+  .history-hour-label::before { content: ''; position: absolute; left: -15px; top: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--border2); }
+  .history-tree-item { display: flex; align-items: center; gap: 8px; padding: 3px 0 3px 4px; font-size: 9px; color: var(--text3); }
   .history-tree-item .ht-icon { width: 16px; text-align: center; flex-shrink: 0; font-size: 11px; }
   .history-tree-item .ht-name { color: var(--text2); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .history-tree-item .ht-tag  { font-size: 7px; padding: 1px 5px; border-radius: 2px; letter-spacing: 0.5px; font-weight: 700; flex-shrink: 0; }
-
-  .ht-booth  { margin-top: 4px; }
   .ht-booth .ht-name { color: var(--accent-dim); font-weight: 700; }
-  .ht-indent1 { padding-left: 20px; }
-  .ht-indent2 { padding-left: 36px; }
+  .ht-indent1 { padding-left: 20px; } .ht-indent2 { padding-left: 36px; }
 
-  /* ── SETTINGS OVERLAY ── */
-  .settings-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.95);
-    display: flex; flex-direction: column;
-    z-index: 100;
-  }
-  .settings-body {
-    flex: 1;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    -webkit-overflow-scrolling: touch;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    min-height: 0;
-  }
-  .settings-body::-webkit-scrollbar { width: 3px; }
-  .settings-body::-webkit-scrollbar-track { background: transparent; }
-  .settings-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-  .settings-section {
-    background: var(--s1);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-  .settings-section-title {
-    padding: 10px 14px;
-    font-size: 8px;
-    color: var(--text3);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--border);
-    background: var(--s2);
-  }
-  .settings-row {
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+  .settings-section { background: var(--s1); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 15px;}
+  .settings-section-title { padding: 10px 14px; font-size: 8px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--s2); }
+  .settings-row { padding: 14px; display: flex; flex-direction: column; gap: 8px; }
   .settings-label { font-size: 10px; color: var(--text2); letter-spacing: 0.5px; }
-  .settings-hint  { font-size: 8px; color: var(--text3); line-height: 1.6; letter-spacing: 0.3px; }
-  .settings-input {
-    background: var(--s0);
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    padding: 10px 12px;
-    width: 100%;
-    outline: none;
-    transition: border-color 0.15s;
-    -webkit-appearance: none;
-  }
+  .settings-hint  { font-size: 8px; color: var(--text3); line-height: 1.6; }
+  .settings-input { background: var(--s0); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); font-family: var(--font-mono); font-size: 12px; padding: 10px 12px; width: 100%; outline: none; }
   .settings-input:focus { border-color: var(--accent-dim); }
-  .settings-input::placeholder { color: var(--text3); }
-
-  .settings-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
-
-  .settings-row-inline {
-    padding: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
+  .settings-row-inline { padding: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .settings-row-inline-info { display: flex; flex-direction: column; gap: 3px; }
+  .btn-action { height: 40px; padding: 0 16px; border-radius: var(--radius-sm); font-family: var(--font-ui); font-weight: 700; font-size: 13px; cursor: pointer; text-transform: uppercase; }
+  .btn-action-warning { background: transparent; color: var(--amber); border: 1px solid #4a2c00; }
+  .btn-action-danger { background: transparent; color: var(--red); border: 1px solid #4a0015; }
+  .settings-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0; background: var(--s0); }
+  .settings-footer .btn { height: 46px; font-size: 14px; }
+  .btn-back { background: var(--s2); color: var(--text2); border: 1px solid var(--border2); }
+  .btn-save-all { background: var(--accent); color: #000; }
 
-  .btn-action {
-    height: 40px;
-    padding: 0 16px;
-    border-radius: var(--radius-sm);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700; font-size: 13px; letter-spacing: 1px;
-    cursor: pointer; text-transform: uppercase;
-    white-space: nowrap;
-    flex-shrink: 0;
-    display: flex; align-items: center; gap: 5px;
-    transition: filter 0.1s;
-  }
-  .btn-action:active { filter: brightness(0.85); }
-  .btn-action-save {
-    background: var(--accent); color: #000;
-    border: none;
-  }
-  .btn-action-danger {
-    background: transparent; color: var(--red);
-    border: 1px solid #4a0015;
-  }
-  .btn-action-warning {
-    background: transparent; color: var(--amber);
-    border: 1px solid #4a2c00;
-  }
-
-  .settings-version {
-    text-align: center;
-    font-size: 8px;
-    color: var(--text3);
-    letter-spacing: 1px;
-    padding-bottom: 8px;
-  }
-
-  /* ── SETTINGS FOOTER ── */
-  .settings-footer {
-    padding: 12px 20px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 10px;
-    flex-shrink: 0;
-    background: var(--s0);
-  }
-  .settings-footer .btn {
-    height: 46px;
-    font-size: 14px;
-  }
-  .btn-back {
-    background: var(--s2);
-    color: var(--text2);
-    border: 1px solid var(--border2);
-  }
-  .btn-save-all {
-    background: var(--accent);
-    color: #000;
-  }
 </style>
 </head>
 <body>
 
-<!-- ── HEADER ─────────────────────────────────────────── -->
 <div class="header">
   <div class="header-left">
     <div class="logo">ExpoCAP</div>
-    <div class="logo-sub">сбор данных</div>
+    <div class="logo-sub">сбор данных <span style="color:var(--green); margin-left:8px;">БД: <span id="headerDbFiles">0</span></span></div>
   </div>
   <div class="header-right">
     <div class="header-user" id="headerUser"></div>
@@ -753,40 +416,38 @@
   </div>
 </div>
 
-<!-- ── STATS ──────────────────────────────────────────── -->
 <div class="stats-bar">
   <div class="stat"><span class="stat-val c-accent" id="statBooths">0</span>стендов</div>
   <div class="stat"><span class="stat-val c-orange" id="statProducts">0</span>товаров</div>
   <div class="stat"><span class="stat-val" id="statPhotos">0</span>фото</div>
-  <div class="stat"><span class="stat-val" id="statAudios">0</span>аудио</div>
   <div class="stat"><span class="stat-val c-blue" id="statTimer">—</span>стенд</div>
 </div>
 
-<!-- ── SESSION CONTROLS ────────────────────────────────── -->
+<div class="warning-banner" id="warningBanner">
+  ⚠ НАКОПИЛОСЬ МНОГО ФАЙЛОВ. СКАЧАЙТЕ ZIP АРХИВ!
+</div>
+
 <div class="session-controls" id="sessionControls" style="display:none">
   <button class="sc-btn sc-pause" onclick="togglePause()" id="btnPause">⏸ Пауза</button>
   <button class="sc-btn sc-stop" onclick="confirmStopSession()" id="btnStop">⏹ Стоп сессии</button>
 </div>
 
-<!-- ── BREADCRUMB ─────────────────────────────────────── -->
 <div class="breadcrumb" id="breadcrumb">
   <span style="color:var(--text3)">/</span>
   <span style="color:var(--text3)">нет активного стенда</span>
 </div>
 
-<!-- ── FEED ───────────────────────────────────────────── -->
 <div class="scroll-area" id="scrollArea">
   <div class="empty" id="emptyState">
     <div class="empty-icon">📦</div>
     <div>Нажми СТЕНД чтобы начать</div>
-    <div class="empty-hint">стенд → товар → фото / аудио<br>файлы сразу в Загрузки</div>
+    <div class="empty-hint">файлы надежно пишутся<br>во внутреннюю БД браузера</div>
   </div>
 </div>
 
-<!-- ── ACTIONS ────────────────────────────────────────── -->
 <div class="actions">
   <div class="btn-row">
-    <button class="btn btn-booth" onclick="newBooth()" id="btnBooth">＋ Стенд</button>
+    <button class="btn btn-booth" onclick="startNewBooth()" id="btnBooth">＋ Стенд</button>
     <button class="btn btn-product" onclick="newProduct()" id="btnProduct" disabled style="opacity:.3">＋ Товар</button>
   </div>
   <div class="btn-row">
@@ -796,13 +457,17 @@
     <button class="btn btn-photo" onclick="takePhoto()" id="btnPhoto" disabled style="opacity:.3">📷 Фото товара</button>
     <button class="btn btn-audio" onclick="toggleAudio()" id="btnAudio" disabled style="opacity:.3">🎙 Аудио</button>
   </div>
+  
+  <button class="btn btn-zip" onclick="downloadZip(false)" id="btnZip" style="display:none; width:100%;">
+    📦 СКАЧАТЬ ZIP (Часть 1)
+  </button>
+
   <div class="btn-secondary-row">
     <button class="btn-log" onclick="showHistory()">📋 История</button>
     <button class="btn-clear" onclick="confirmClear()">🗑 Сброс</button>
   </div>
 </div>
 
-<!-- ── STATUS BAR ─────────────────────────────────────── -->
 <div class="status-bar">
   <span class="status-dot" id="statusDot"></span>
   <span id="statusText">готов к работе</span>
@@ -812,21 +477,24 @@
 <input type="file" id="fileInput" accept="image/*" capture="environment">
 <input type="file" id="signInput" accept="image/*" capture="environment">
 
-<!-- ── PREVIEW ────────────────────────────────────────── -->
 <div class="preview-overlay" id="previewOverlay" style="display:none">
   <div class="preview-label" id="previewLabel">ФОТО</div>
   <img id="previewImg" src="" alt="">
   <div class="preview-actions">
-    <button class="btn-keep"    onclick="keepPhoto()">✓ Сохранить</button>
+    <button class="btn-keep"    onclick="keepPhoto()">✓ В базу</button>
     <button class="btn-discard" onclick="discardPhoto()">✕ Удалить</button>
   </div>
 </div>
 
-<!-- ── CONFIRM CLEAR ──────────────────────────────────── -->
+<div class="overlay" id="loaderOverlay" style="display:none; z-index: 400; background:rgba(0,0,0,0.95); align-items:center; justify-content:center;">
+  <div style="color:var(--accent); font-family:var(--font-ui); font-size:24px; font-weight:bold; letter-spacing:1px;">УПАКОВКА АРХИВА...</div>
+  <div style="font-size:12px; color:var(--text2); margin-top:10px;" id="loaderSub">Не закрывайте браузер</div>
+</div>
+
 <div class="confirm-overlay" id="confirmOverlay" style="display:none">
   <div class="confirm-box">
     <div class="confirm-title">⚠ Сбросить сессию?</div>
-    <div class="confirm-text">Лог сессии будет очищен.<br>Файлы в Загрузки останутся.</div>
+    <div class="confirm-text">Лог сессии будет очищен.<br>Файлы в БД (если есть) удалятся!</div>
     <div class="confirm-btns">
       <button class="btn-confirm-yes" onclick="clearAll()">Сбросить</button>
       <button class="btn-confirm-no"  onclick="document.getElementById('confirmOverlay').style.display='none'">Отмена</button>
@@ -834,7 +502,6 @@
   </div>
 </div>
 
-<!-- ── CONFIRM STOP ───────────────────────────────────── -->
 <div class="confirm-overlay" id="confirmStopOverlay" style="display:none">
   <div class="confirm-box">
     <div class="confirm-title" style="color:var(--amber)">⏹ Завершить сессию?</div>
@@ -846,7 +513,6 @@
   </div>
 </div>
 
-<!-- ── HISTORY ────────────────────────────────────────── -->
 <div class="history-overlay" id="historyOverlay" style="display:none">
   <div class="overlay-header">
     <div class="overlay-title">История</div>
@@ -855,59 +521,39 @@
   <div class="history-body" id="historyBody"></div>
 </div>
 
-<!-- ── SETTINGS ───────────────────────────────────────── -->
 <div class="settings-overlay" id="settingsOverlay" style="display:none">
   <div class="overlay-header">
     <div class="overlay-title">Настройки</div>
   </div>
-
   <div class="settings-body">
     <div class="settings-section">
       <div class="settings-section-title">Профиль оператора</div>
       <div class="settings-row">
         <div class="settings-label">Ваше имя / подпись</div>
         <div class="settings-hint">Добавляется в имена файлов и лог. Например: andrey или team_a</div>
-        <input class="settings-input" id="settingsName" type="text" maxlength="32"
-               placeholder="оператор" autocomplete="off" autocorrect="off" spellcheck="false">
+        <input class="settings-input" id="settingsName" type="text" maxlength="32" placeholder="оператор" autocomplete="off" autocorrect="off" spellcheck="false">
       </div>
     </div>
-
     <div class="settings-section">
       <div class="settings-section-title">Кеш и хранилище</div>
       <div class="settings-row-inline">
         <div class="settings-row-inline-info">
           <div class="settings-label">Кеш сервис-воркера</div>
-          <div class="settings-hint">Офлайн-оболочка приложения. Очищать при обновлении.</div>
+          <div class="settings-hint">Офлайн-оболочка приложения.</div>
         </div>
         <button class="btn-action btn-action-warning" onclick="clearSWCache()">🗄 Очистить</button>
       </div>
       <hr class="settings-divider">
       <div class="settings-row-inline">
         <div class="settings-row-inline-info">
-          <div class="settings-label">Данные сессии (localStorage)</div>
-          <div class="settings-hint">Стенды, товары, история текущей сессии.</div>
+          <div class="settings-label">Сброс приложения</div>
+          <div class="settings-hint">Удалит всю историю и базу данных.</div>
         </div>
         <button class="btn-action btn-action-danger" onclick="confirmClearFromSettings()">🗑 Сброс</button>
       </div>
     </div>
-
-    <div class="settings-section">
-      <div class="settings-section-title">О приложении</div>
-      <div class="settings-row" style="gap:6px">
-        <div class="settings-hint" style="line-height:2">
-          <b style="color:var(--text2)">ExpoCapture</b> — полевой сборщик данных с выставки<br>
-          Файлы сразу скачиваются в Загрузки<br>
-          Работает без интернета<br>
-          <br>
-          Формат имени файла:<br>
-          <span style="color:var(--accent-dim)">booth_001__product_002__photo_003__оператор__дата.jpg</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="settings-version">EXPOCAPTURE v4 · автономное приложение</div>
+    <div class="settings-version" style="margin-top:20px;">EXPOCAPTURE v5 · локальные БД архивы</div>
   </div>
-
   <div class="settings-footer">
     <button class="btn btn-back" onclick="closeSettings()">← Назад</button>
     <button class="btn btn-save-all" onclick="saveSettings()">✓ Сохранить</button>
@@ -915,6 +561,46 @@
 </div>
 
 <script>
+// ── INDEXED DB (LOCAL STORAGE FOR FILES) ───────────────
+const dbName = "ExpoDB";
+const storeName = "files";
+let db;
+
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(dbName, 1);
+    req.onupgradeneeded = (e) => { e.target.result.createObjectStore(storeName); };
+    req.onsuccess = (e) => { db = e.target.result; resolve(); };
+    req.onerror = () => reject(req.error);
+  });
+}
+function saveFileToDB(filename, blob) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    tx.objectStore(storeName).put(blob, filename);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+function getFilesFromDB() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const reqKeys = store.getAllKeys();
+    const reqVals = store.getAll();
+    tx.oncomplete = () => { resolve(reqKeys.result.map((k, i) => ({ name: k, blob: reqVals.result[i] }))); };
+    tx.onerror = () => reject(tx.error);
+  });
+}
+function clearDB() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    tx.objectStore(storeName).clear();
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 // ── STATE ──────────────────────────────────────────────
 let state = {
   booths: [], currentBoothIdx: -1, currentProductIdx: -1,
@@ -923,60 +609,40 @@ let state = {
   boothStartTime: null,
   sessionPaused: false,
   sessionStopped: false,
-  pausedElapsed: 0,   // ms accumulated before pause
+  pausedElapsed: 0,
   pauseStartedAt: null,
+  zipPart: 1 // Трекинг частей ZIP
 };
 
 let mediaRecorder = null, audioChunks = [], recTimerInterval = null;
 let boothTimerInterval = null, pendingPhoto = null;
 
 // ── SETTINGS ───────────────────────────────────────────
-function getOperatorName() {
-  return localStorage.getItem('expocap_operator') || '';
-}
-function openSettings() {
-  document.getElementById('settingsName').value = getOperatorName();
-  document.getElementById('settingsOverlay').style.display = 'flex';
-}
-function closeSettings() {
-  document.getElementById('settingsOverlay').style.display = 'none';
-}
+function getOperatorName() { return localStorage.getItem('expocap_operator') || ''; }
+function openSettings() { document.getElementById('settingsName').value = getOperatorName(); document.getElementById('settingsOverlay').style.display = 'flex'; }
+function closeSettings() { document.getElementById('settingsOverlay').style.display = 'none'; }
 function saveSettings() {
   const v = document.getElementById('settingsName').value.trim().replace(/[^a-zA-Zа-яА-ЯёЁ0-9_-]/g,'_');
-  localStorage.setItem('expocap_operator', v);
-  updateHeaderUser();
-  showToast(v ? `оператор: ${v}` : 'имя сброшено');
-  closeSettings();
+  localStorage.setItem('expocap_operator', v); updateHeaderUser();
+  showToast(v ? `оператор: ${v}` : 'имя сброшено'); closeSettings();
 }
 function updateHeaderUser() {
-  const name = getOperatorName();
-  const el = document.getElementById('headerUser');
-  el.innerHTML = name ? `<span>${name}</span>` : '';
+  const name = getOperatorName(); document.getElementById('headerUser').innerHTML = name ? `<span>${name}</span>` : '';
 }
-
-// ── CLEAR SW CACHE ────────────────────────────────────
 async function clearSWCache() {
   try {
-    const keys = await caches.keys();
-    await Promise.all(keys.map(k => caches.delete(k)));
-    showToast(`кеш очищен (${keys.length} записей)`);
-  } catch(e) {
-    showToast('не удалось очистить кеш');
-  }
+    const keys = await caches.keys(); await Promise.all(keys.map(k => caches.delete(k)));
+    showToast(`кеш очищен (${keys.length})`);
+  } catch(e) { showToast('ошибка кеша'); }
 }
-function confirmClearFromSettings() {
-  closeSettings();
-  document.getElementById('confirmOverlay').style.display = 'flex';
-}
+function confirmClearFromSettings() { closeSettings(); document.getElementById('confirmOverlay').style.display = 'flex'; }
 
 // ── PERSISTENCE ────────────────────────────────────────
-function save() {
-  try { localStorage.setItem('expocap_v3', JSON.stringify(state)); } catch(e) {}
-}
+function save() { try { localStorage.setItem('expocap_v5', JSON.stringify(state)); } catch(e) {} }
 function load() {
   try {
-    const r = localStorage.getItem('expocap_v3');
-    if (r) { state = { ...state, ...JSON.parse(r) }; return true; }
+    const r = localStorage.getItem('expocap_v5');
+    if (r) { state = { ...state, ...JSON.parse(r) }; if(!state.zipPart) state.zipPart = 1; return true; }
   } catch(e) {}
   return false;
 }
@@ -985,34 +651,36 @@ function load() {
 function tsISO()  { return new Date().toISOString(); }
 function tsFile() { return new Date().toISOString().replace(/[:.]/g,'-').slice(0,19); }
 function pad(n)   { return String(n).padStart(3,'0'); }
-
 function showToast(msg, dur=1800) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), dur);
 }
 function setStatus(msg, mode='') {
   document.getElementById('statusText').textContent = msg;
-  const dot = document.getElementById('statusDot');
-  dot.className = 'status-dot';
-  if (mode === 'rec') dot.classList.add('red');
-  if (mode === 'pause') dot.classList.add('amber');
+  const dot = document.getElementById('statusDot'); dot.className = 'status-dot';
+  if (mode === 'rec') dot.classList.add('red'); if (mode === 'pause') dot.classList.add('amber');
 }
 function currentBooth()   { return state.booths[state.currentBoothIdx] || null; }
 function currentProduct() { const b=currentBooth(); return b?(b.products[state.currentProductIdx]||null):null; }
 
-function updateUI() {
+async function updateUI() {
   const b = currentBooth(), p = currentProduct();
+  
+  // Проверка файлов в БД
+  let dbFilesCount = 0;
+  try { const files = await getFilesFromDB(); dbFilesCount = files.length; } catch(e) {}
+  
+  document.getElementById('headerDbFiles').textContent = dbFilesCount;
+  document.getElementById('warningBanner').style.display = dbFilesCount >= 40 ? 'block' : 'none';
+
   document.getElementById('statBooths').textContent   = state.booths.length;
   document.getElementById('statProducts').textContent = state.booths.reduce((a,x)=>a+x.products.length,0);
   document.getElementById('statPhotos').textContent   = state.log.filter(x=>x.type==='photo'||x.type==='sign').length;
-  document.getElementById('statAudios').textContent   = state.log.filter(x=>x.type==='audio').length;
 
   const bc = document.getElementById('breadcrumb');
   if (b) {
     bc.innerHTML = `<span style="color:var(--text3)">/</span><b>${b.name}</b>`
-      + (p ? `<span class="bc-sep">/</span><b>${p.name}</b>`
-           : `<span class="bc-sep">/</span><span style="color:var(--text3)">нет товара</span>`);
+      + (p ? `<span class="bc-sep">/</span><b>${p.name}</b>` : `<span class="bc-sep">/</span><span style="color:var(--text3)">нет товара</span>`);
   } else {
     bc.innerHTML = `<span style="color:var(--text3)">/</span><span style="color:var(--text3)">нет активного стенда</span>`;
   }
@@ -1021,27 +689,37 @@ function updateUI() {
   const hasSession = !!b && !state.sessionStopped;
 
   const set=(id,on)=>{ const el=document.getElementById(id); el.disabled=!on; el.style.opacity=on?'1':'0.3'; };
-  set('btnBooth', !state.sessionPaused);
-  set('btnProduct', active);
-  set('btnSign', active);
-  set('btnPhoto', active && !!p);
-  set('btnAudio', active && !!p);
-
-  // Show/hide session controls bar
-  document.getElementById('sessionControls').style.display = hasSession ? 'flex' : 'none';
-
-  // Pause button label
-  const btnPause = document.getElementById('btnPause');
-  if (state.sessionPaused) {
-    btnPause.textContent = '▶ Продолжить';
-    btnPause.classList.add('paused');
+  
+  // Кнопка нового стенда (меняется на СЛЕД. СТЕНД)
+  const btnBooth = document.getElementById('btnBooth');
+  if (b && !state.sessionStopped) {
+    btnBooth.innerHTML = '➡ СЛЕД. СТЕНД';
+    btnBooth.style.background = 'var(--blue)';
+    btnBooth.disabled = state.sessionPaused;
   } else {
-    btnPause.textContent = '⏸ Пауза';
-    btnPause.classList.remove('paused');
+    btnBooth.innerHTML = '＋ Стенд';
+    btnBooth.style.background = 'var(--accent)';
+    btnBooth.disabled = false;
   }
+
+  // Кнопка ZIP
+  const btnZip = document.getElementById('btnZip');
+  if (b && !state.sessionStopped) {
+    btnZip.style.display = 'block';
+    btnZip.disabled = dbFilesCount === 0;
+    btnZip.innerHTML = `📦 СКАЧАТЬ ZIP (Часть ${state.zipPart || 1})`;
+  } else {
+    btnZip.style.display = 'none';
+  }
+
+  set('btnProduct', active); set('btnSign', active); set('btnPhoto', active && !!p); set('btnAudio', active && !!p);
+
+  document.getElementById('sessionControls').style.display = hasSession ? 'flex' : 'none';
+  const btnPause = document.getElementById('btnPause');
+  if (state.sessionPaused) { btnPause.textContent = '▶ Продолжить'; btnPause.classList.add('paused'); } 
+  else { btnPause.textContent = '⏸ Пауза'; btnPause.classList.remove('paused'); }
 }
 
-// ── BOOTH TIMER (accounts for pause) ──────────────────
 function getBoothElapsedMs() {
   if (!state.boothStartTime) return 0;
   if (state.sessionStopped) return state.pausedElapsed;
@@ -1052,85 +730,51 @@ function getBoothElapsedMs() {
 function startBoothTimer() {
   clearInterval(boothTimerInterval);
   boothTimerInterval = setInterval(() => {
-    if (!state.boothStartTime) return;
-    if (state.sessionStopped) { clearInterval(boothTimerInterval); return; }
-    const ms = getBoothElapsedMs();
-    const s = Math.floor(ms / 1000);
-    document.getElementById('statTimer').textContent =
-      `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+    if (!state.boothStartTime || state.sessionStopped) { clearInterval(boothTimerInterval); return; }
+    const s = Math.floor(getBoothElapsedMs() / 1000);
+    document.getElementById('statTimer').textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
   }, 500);
 }
 
-// ── PAUSE / STOP ──────────────────────────────────────
 function togglePause() {
   if (!currentBooth() || state.sessionStopped) return;
   if (!state.sessionPaused) {
-    // Pause
-    const now = Date.now();
-    const ref = state.pauseStartedAt || state.boothStartTime;
-    state.pausedElapsed += now - new Date(ref).getTime();
-    state.pauseStartedAt = null;
-    state.sessionPaused = true;
-    setStatus('сессия на паузе', 'pause');
-    showToast('⏸ пауза');
+    state.pausedElapsed += Date.now() - new Date(state.pauseStartedAt || state.boothStartTime).getTime();
+    state.pauseStartedAt = null; state.sessionPaused = true;
+    setStatus('сессия на паузе', 'pause'); showToast('⏸ пауза');
   } else {
-    // Resume
-    state.pauseStartedAt = tsISO();
-    state.sessionPaused = false;
-    setStatus(`стенд: ${currentBooth().name}`);
-    showToast('▶ продолжение');
-    startBoothTimer();
+    state.pauseStartedAt = tsISO(); state.sessionPaused = false;
+    setStatus(`стенд: ${currentBooth().name}`); showToast('▶ продолжение'); startBoothTimer();
   }
   save(); updateUI();
 }
 
-function confirmStopSession() {
-  if (!currentBooth() || state.sessionStopped) return;
-  document.getElementById('confirmStopOverlay').style.display = 'flex';
-}
-
+function confirmStopSession() { if (!currentBooth() || state.sessionStopped) return; document.getElementById('confirmStopOverlay').style.display = 'flex'; }
 function stopSession() {
   document.getElementById('confirmStopOverlay').style.display = 'none';
-  if (state.sessionPaused) {
-    // already accumulated
-  } else {
-    const ref = state.pauseStartedAt || state.boothStartTime;
-    state.pausedElapsed += Date.now() - new Date(ref).getTime();
-  }
-  state.sessionStopped = true;
-  state.sessionPaused = false;
-  clearInterval(boothTimerInterval);
-  // show final time
+  if (!state.sessionPaused) state.pausedElapsed += Date.now() - new Date(state.pauseStartedAt || state.boothStartTime).getTime();
+  state.sessionStopped = true; state.sessionPaused = false; clearInterval(boothTimerInterval);
   const s = Math.floor(state.pausedElapsed / 1000);
-  document.getElementById('statTimer').textContent =
-    `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-  setStatus('сессия завершена');
-  showToast('⏹ сессия завершена');
-  save(); updateUI();
+  document.getElementById('statTimer').textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  setStatus('сессия завершена'); showToast('⏹ сессия завершена'); save(); updateUI();
 }
 
 function addCard(icon, name, meta, tag, cls) {
-  const empty = document.getElementById('emptyState');
-  if (empty) empty.remove();
-  const area = document.getElementById('scrollArea');
-  const el = document.createElement('div');
+  const empty = document.getElementById('emptyState'); if (empty) empty.remove();
+  const area = document.getElementById('scrollArea'); const el = document.createElement('div');
   el.className = 'item-card';
   el.innerHTML = `<div class="item-icon">${icon}</div><div class="item-info"><div class="item-name">${name}</div><div class="item-meta">${meta}</div></div><div class="item-tag ${cls}">${tag}</div>`;
-  area.appendChild(el);
-  requestAnimationFrame(() => el.scrollIntoView({behavior:'smooth', block:'end'}));
+  area.appendChild(el); requestAnimationFrame(() => el.scrollIntoView({behavior:'smooth', block:'end'}));
 }
 
 function rebuildFeed() {
-  const area = document.getElementById('scrollArea');
-  area.innerHTML = '';
+  const area = document.getElementById('scrollArea'); area.innerHTML = '';
   if (!state.booths.length) {
-    area.innerHTML = '<div class="empty" id="emptyState"><div class="empty-icon">📦</div><div>Нажми СТЕНД чтобы начать</div><div class="empty-hint">стенд → товар → фото / аудио<br>файлы сразу в Загрузки</div></div>';
-    return;
+    area.innerHTML = '<div class="empty" id="emptyState"><div class="empty-icon">📦</div><div>Нажми СТЕНД чтобы начать</div><div class="empty-hint">файлы надежно пишутся<br>во внутреннюю БД браузера</div></div>'; return;
   }
   for (const b of state.booths) {
     addCard('🏢', b.name, b.ts.slice(0,10), 'СТЕНД', 'tag-booth');
-    for (const p of b.products)
-      addCard('📦', p.name, `в ${b.name}`, 'ТОВАР', 'tag-item');
+    for (const p of b.products) addCard('📦', p.name, `в ${b.name}`, 'ТОВАР', 'tag-item');
   }
   for (const entry of state.log) {
     if (entry.type==='sign')  addCard('🪧', entry.fname, entry.boothName, 'ТАБЛИЧКА', 'tag-sign');
@@ -1139,47 +783,32 @@ function rebuildFeed() {
   }
 }
 
-// ── DOWNLOAD IMMEDIATELY ───────────────────────────────
-function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 3000);
-}
-
-// ── FILENAME BUILDER ───────────────────────────────────
 function buildFilename(parts, ext) {
-  const op = getOperatorName();
-  const base = parts.join('__');
-  const ts   = tsFile();
+  const op = getOperatorName(); const base = parts.join('__'); const ts = tsFile();
   return op ? `${base}__${op}__${ts}.${ext}` : `${base}__${ts}.${ext}`;
 }
 
-// ── BOOTH ──────────────────────────────────────────────
-function newBooth() {
-  // If session was stopped, reset session control state for new booth
-  if (state.sessionStopped) {
-    state.sessionStopped = false;
-    state.pausedElapsed = 0;
-    state.pauseStartedAt = null;
-  }
-  state.boothCounter++;
+// ── BOOTH LOGIC (AUTO ZIP) ─────────────────────────────
+async function startNewBooth() {
+  // Если уже есть активный стенд и файлы в БД - скачиваем ZIP перед переходом
+  try {
+    const files = await getFilesFromDB();
+    if (currentBooth() && files.length > 0) {
+      document.getElementById('loaderSub').textContent = "Сохраняем файлы перед переходом...";
+      await downloadZip(true);
+    }
+  } catch(e) {}
+
+  if (state.sessionStopped) { state.sessionStopped = false; state.pausedElapsed = 0; state.pauseStartedAt = null; }
+  state.boothCounter++; state.zipPart = 1;
   const id=`booth_${pad(state.boothCounter)}`, name=`Стенд_${pad(state.boothCounter)}`;
   state.booths.push({id, name, ts:tsISO(), products:[]});
-  state.currentBoothIdx = state.booths.length - 1;
-  state.currentProductIdx = -1;
-  state.boothStartTime = tsISO();
-  state.pausedElapsed = 0;
-  state.pauseStartedAt = tsISO();
-  state.sessionPaused = false;
-  startBoothTimer();
-  addCard('🏢', name, new Date().toLocaleTimeString(), 'СТЕНД', 'tag-booth');
-  updateUI(); save();
-  showToast(`${name} активен`);
-  setStatus(`стенд: ${name}`);
+  state.currentBoothIdx = state.booths.length - 1; state.currentProductIdx = -1;
+  state.boothStartTime = tsISO(); state.pausedElapsed = 0; state.pauseStartedAt = tsISO(); state.sessionPaused = false;
+  startBoothTimer(); addCard('🏢', name, new Date().toLocaleTimeString(), 'СТЕНД', 'tag-booth');
+  updateUI(); save(); showToast(`${name} открыт`); setStatus(`стенд: ${name}`);
 }
 
-// ── PRODUCT ────────────────────────────────────────────
 function newProduct() {
   if (!currentBooth() || state.sessionPaused || state.sessionStopped) return;
   state.productCounter++;
@@ -1187,237 +816,193 @@ function newProduct() {
   currentBooth().products.push({id, name, ts:tsISO()});
   state.currentProductIdx = currentBooth().products.length - 1;
   addCard('📦', name, `в ${currentBooth().name}`, 'ТОВАР', 'tag-item');
-  updateUI(); save();
-  showToast(`${name} активен`);
-  setStatus(`товар: ${name}`);
+  updateUI(); save(); showToast(`${name} активен`); setStatus(`товар: ${name}`);
 }
 
-// ── SIGN PHOTO ─────────────────────────────────────────
-function takeSign() {
-  if (!currentBooth() || state.sessionPaused || state.sessionStopped) return;
-  document.getElementById('signInput').click();
-}
+// ── PHOTO & DB SAVE ────────────────────────────────────
+function takeSign() { if (!currentBooth() || state.sessionPaused || state.sessionStopped) return; document.getElementById('signInput').click(); }
 document.getElementById('signInput').addEventListener('change', e => {
-  const file = e.target.files[0]; if (!file) return;
-  state.fileCounter++;
-  const b = currentBooth();
+  const file = e.target.files[0]; if (!file) return; state.fileCounter++; const b = currentBooth();
   const fname = buildFilename([b.id, 'sign', pad(state.fileCounter)], 'jpg');
   pendingPhoto = {blob:file, fname, type:'sign'};
   document.getElementById('previewLabel').textContent = '🪧 Табличка стенда';
   document.getElementById('previewImg').src = URL.createObjectURL(file);
-  document.getElementById('previewOverlay').style.display = 'flex';
-  e.target.value = '';
+  document.getElementById('previewOverlay').style.display = 'flex'; e.target.value = '';
 });
 
-// ── PHOTO ──────────────────────────────────────────────
-function takePhoto() {
-  if (!currentProduct() || state.sessionPaused || state.sessionStopped) return;
-  document.getElementById('fileInput').click();
-}
+function takePhoto() { if (!currentProduct() || state.sessionPaused || state.sessionStopped) return; document.getElementById('fileInput').click(); }
 document.getElementById('fileInput').addEventListener('change', e => {
-  const file = e.target.files[0]; if (!file) return;
-  const b=currentBooth(), p=currentProduct();
-  state.fileCounter++;
+  const file = e.target.files[0]; if (!file) return; const b=currentBooth(), p=currentProduct(); state.fileCounter++;
   const fname = buildFilename([b.id, p.id, `photo_${pad(state.fileCounter)}`], 'jpg');
   pendingPhoto = {blob:file, fname, type:'photo'};
   document.getElementById('previewLabel').textContent = '📷 Фото товара';
   document.getElementById('previewImg').src = URL.createObjectURL(file);
-  document.getElementById('previewOverlay').style.display = 'flex';
-  e.target.value = '';
+  document.getElementById('previewOverlay').style.display = 'flex'; e.target.value = '';
 });
 
-function keepPhoto() {
+async function keepPhoto() {
   if (!pendingPhoto) return;
-  const {blob, fname, type} = pendingPhoto;
-  const b = currentBooth(), p = currentProduct();
-  downloadBlob(blob, fname);
+  const {blob, fname, type} = pendingPhoto; const b = currentBooth(), p = currentProduct();
+  
+  // Сохраняем в БД вместо прямого скачивания
+  await saveFileToDB(fname, blob);
+  
   state.log.push({ ts:tsISO(), type, fname, boothName:b.name, productName:p?.name||null });
   const ctx = type==='sign' ? b.name : `${b.name}/${p.name}`;
-  if (type==='sign') addCard('🪧', fname, ctx, 'ТАБЛИЧКА', 'tag-sign');
-  else               addCard('📷', fname, ctx, 'ФОТО',     'tag-photo');
+  if (type==='sign') addCard('🪧', fname, ctx, 'ТАБЛИЧКА', 'tag-sign'); else addCard('📷', fname, ctx, 'ФОТО', 'tag-photo');
   URL.revokeObjectURL(document.getElementById('previewImg').src);
-  document.getElementById('previewOverlay').style.display = 'none';
-  pendingPhoto = null;
-  updateUI(); save();
-  showToast('сохранено в Загрузки ↓');
+  document.getElementById('previewOverlay').style.display = 'none'; pendingPhoto = null;
+  updateUI(); save(); showToast('✓ В базе данных');
 }
 
 function discardPhoto() {
   URL.revokeObjectURL(document.getElementById('previewImg').src);
-  document.getElementById('previewOverlay').style.display = 'none';
-  pendingPhoto = null;
-  state.fileCounter = Math.max(0, state.fileCounter - 1);
-  showToast('удалено');
+  document.getElementById('previewOverlay').style.display = 'none'; pendingPhoto = null;
+  state.fileCounter = Math.max(0, state.fileCounter - 1); showToast('удалено');
 }
 
 // ── AUDIO ──────────────────────────────────────────────
-async function toggleAudio() {
-  if (mediaRecorder && mediaRecorder.state==='recording') stopAudio();
-  else startAudio();
-}
+async function toggleAudio() { if (mediaRecorder && mediaRecorder.state==='recording') stopAudio(); else startAudio(); }
 async function startAudio() {
   if (!currentProduct() || state.sessionPaused || state.sessionStopped) return;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    audioChunks = [];
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true}); audioChunks = [];
     mediaRecorder = new MediaRecorder(stream);
     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    mediaRecorder.onstop = saveAudio;
-    mediaRecorder.start();
-    const t0 = Date.now();
-    const btn = document.getElementById('btnAudio');
-    btn.classList.add('recording');
+    mediaRecorder.onstop = saveAudio; mediaRecorder.start(); const t0 = Date.now();
+    const btn = document.getElementById('btnAudio'); btn.classList.add('recording');
     btn.innerHTML = '⏹ Стоп <span class="rec-timer" id="recTimer">0:00</span>';
     recTimerInterval = setInterval(() => {
-      const s = Math.floor((Date.now()-t0)/1000);
-      const el = document.getElementById('recTimer');
+      const s = Math.floor((Date.now()-t0)/1000); const el = document.getElementById('recTimer');
       if (el) el.textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-    }, 500);
-    setStatus('● запись...', 'rec');
-  } catch(e) {
-    showToast('нет доступа к микрофону');
-    setStatus('ошибка микрофона');
-  }
+    }, 500); setStatus('● запись...', 'rec');
+  } catch(e) { showToast('нет доступа к микрофону'); setStatus('ошибка микрофона'); }
 }
 function stopAudio() {
   if (mediaRecorder) { mediaRecorder.stop(); mediaRecorder.stream.getTracks().forEach(t=>t.stop()); mediaRecorder=null; }
-  clearInterval(recTimerInterval);
-  const btn = document.getElementById('btnAudio');
-  btn.classList.remove('recording');
-  btn.innerHTML = '🎙 Аудио';
+  clearInterval(recTimerInterval); const btn = document.getElementById('btnAudio');
+  btn.classList.remove('recording'); btn.innerHTML = '🎙 Аудио';
 }
-function saveAudio() {
-  const b=currentBooth(), p=currentProduct(); if (!b||!p) return;
-  state.fileCounter++;
+async function saveAudio() {
+  const b=currentBooth(), p=currentProduct(); if (!b||!p) return; state.fileCounter++;
   const blob = new Blob(audioChunks, {type:'audio/webm'});
   const fname = buildFilename([b.id, p.id, `audio_${pad(state.fileCounter)}`], 'webm');
-  downloadBlob(blob, fname);
+  
+  await saveFileToDB(fname, blob); // В БД
+  
   state.log.push({ts:tsISO(), type:'audio', fname, boothName:b.name, productName:p.name});
   addCard('🎙', fname, `${b.name}/${p.name}`, 'АУДИО', 'tag-audio');
-  updateUI(); save();
-  showToast('аудио сохранено в Загрузки ↓');
-  setStatus('аудио сохранено');
+  updateUI(); save(); showToast('✓ Аудио в базе'); setStatus('аудио сохранено');
 }
 
-// ── HISTORY ────────────────────────────────────────────
-function showHistory() {
-  const body = document.getElementById('historyBody');
-  const allItems = [];
+// ── ZIP DOWNLOAD ───────────────────────────────────────
+async function downloadZip(isSwitchingBooth = false) {
+  document.getElementById('loaderOverlay').style.display = 'flex';
+  if (!isSwitchingBooth) document.getElementById('loaderSub').textContent = "Не закрывайте браузер";
+  
+  try {
+    const files = await getFilesFromDB();
+    if (files.length === 0) return;
 
-  // Collect all events with timestamps
+    const zip = new JSZip();
+    for (const f of files) zip.file(f.name, f.blob);
+    
+    const logText = files.map(f => f.name).join('\n');
+    zip.file('file_list.txt', logText);
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const boothNameStr = currentBooth() ? currentBooth().name : 'Archive';
+    const zipName = `${boothNameStr}_Часть_${state.zipPart || 1}.zip`;
+    
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = zipName; a.click();
+    
+    await clearDB();
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+    
+    if (!isSwitchingBooth) {
+      state.zipPart = (state.zipPart || 1) + 1;
+      showToast(`✓ Память очищена (Часть ${state.zipPart - 1} скачана)`);
+      save(); updateUI();
+    }
+  } catch (err) {
+    alert('Ошибка архивации: ' + err.message);
+  } finally {
+    document.getElementById('loaderOverlay').style.display = 'none';
+  }
+}
+
+// ── HISTORY LOGIC ──────────────────────────────────────
+function showHistory() {
+  const body = document.getElementById('historyBody'); const allItems = [];
   for (const b of state.booths) {
     allItems.push({ ts: b.ts, type: 'booth', name: b.name, data: b });
-    for (const p of b.products) {
-      allItems.push({ ts: p.ts, type: 'product', name: p.name, boothName: b.name });
-    }
+    for (const p of b.products) allItems.push({ ts: p.ts, type: 'product', name: p.name, boothName: b.name });
   }
-  for (const e of state.log) {
-    allItems.push({ ts: e.ts, type: e.type, name: e.fname, boothName: e.boothName, productName: e.productName });
-  }
-
-  if (!allItems.length) {
-    body.innerHTML = '<div class="history-empty">история пуста</div>';
-    document.getElementById('historyOverlay').style.display = 'flex';
-    return;
-  }
-
+  for (const e of state.log) allItems.push({ ts: e.ts, type: e.type, name: e.fname, boothName: e.boothName, productName: e.productName });
+  if (!allItems.length) { body.innerHTML = '<div class="history-empty">история пуста</div>'; document.getElementById('historyOverlay').style.display = 'flex'; return; }
   allItems.sort((a, b) => a.ts.localeCompare(b.ts));
-
-  // Group by day → hour
   const days = {};
   for (const item of allItems) {
-    const d = new Date(item.ts);
-    const dayKey = d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+    const d = new Date(item.ts); const dayKey = d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
     const hourKey = `${String(d.getHours()).padStart(2,'0')}:00`;
     if (!days[dayKey]) days[dayKey] = { hours: {}, stats: { booths: 0, products: 0, photos: 0, audios: 0 } };
     if (!days[dayKey].hours[hourKey]) days[dayKey].hours[hourKey] = [];
     days[dayKey].hours[hourKey].push(item);
-
-    // Stats
-    if (item.type === 'booth') days[dayKey].stats.booths++;
-    if (item.type === 'product') days[dayKey].stats.products++;
-    if (item.type === 'photo' || item.type === 'sign') days[dayKey].stats.photos++;
-    if (item.type === 'audio') days[dayKey].stats.audios++;
+    if (item.type === 'booth') days[dayKey].stats.booths++; if (item.type === 'product') days[dayKey].stats.products++;
+    if (item.type === 'photo' || item.type === 'sign') days[dayKey].stats.photos++; if (item.type === 'audio') days[dayKey].stats.audios++;
   }
-
   let html = '';
   for (const [dayLabel, dayData] of Object.entries(days)) {
     const s = dayData.stats;
-    html += `<div class="history-day">`;
-    html += `<div class="history-day-header">`;
-    html += `<div class="history-day-date">${dayLabel}</div>`;
-    html += `</div>`;
-    html += `<div class="history-day-stats">`;
-    html += `<span>🏢 <span class="hds-val">${s.booths}</span></span>`;
-    html += `<span>📦 <span class="hds-val">${s.products}</span></span>`;
-    html += `<span>📷 <span class="hds-val">${s.photos}</span></span>`;
-    html += `<span>🎙 <span class="hds-val">${s.audios}</span></span>`;
-    html += `</div>`;
-
+    html += `<div class="history-day"><div class="history-day-header"><div class="history-day-date">${dayLabel}</div></div><div class="history-day-stats"><span>🏢 <span class="hds-val">${s.booths}</span></span><span>📦 <span class="hds-val">${s.products}</span></span><span>📷 <span class="hds-val">${s.photos}</span></span><span>🎙 <span class="hds-val">${s.audios}</span></span></div>`;
     const sortedHours = Object.keys(dayData.hours).sort();
     for (const hour of sortedHours) {
-      html += `<div class="history-hour">`;
-      html += `<div class="history-hour-label">${hour}</div>`;
-      for (const item of dayData.hours[hour]) {
-        html += buildTreeItem(item);
-      }
+      html += `<div class="history-hour"><div class="history-hour-label">${hour}</div>`;
+      for (const item of dayData.hours[hour]) html += buildTreeItem(item);
       html += `</div>`;
     }
     html += `</div>`;
   }
-
-  body.innerHTML = html;
-  document.getElementById('historyOverlay').style.display = 'flex';
+  body.innerHTML = html; document.getElementById('historyOverlay').style.display = 'flex';
 }
-
 function buildTreeItem(item) {
   const time = new Date(item.ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   switch (item.type) {
-    case 'booth':
-      return `<div class="history-tree-item ht-booth"><span class="ht-icon">🏢</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-booth" style="font-size:7px">СТЕНД</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
-    case 'product':
-      return `<div class="history-tree-item ht-indent1"><span class="ht-icon">📦</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-item" style="font-size:7px">ТОВАР</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
-    case 'sign':
-      return `<div class="history-tree-item ht-indent1"><span class="ht-icon">🪧</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-sign" style="font-size:7px">ТАБЛ</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
-    case 'photo':
-      return `<div class="history-tree-item ht-indent2"><span class="ht-icon">📷</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-photo" style="font-size:7px">ФОТО</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
-    case 'audio':
-      return `<div class="history-tree-item ht-indent2"><span class="ht-icon">🎙</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-audio" style="font-size:7px">АУДИО</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
-    default:
-      return '';
+    case 'booth': return `<div class="history-tree-item ht-booth"><span class="ht-icon">🏢</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-booth">СТЕНД</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
+    case 'product': return `<div class="history-tree-item ht-indent1"><span class="ht-icon">📦</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-item">ТОВАР</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
+    case 'sign': return `<div class="history-tree-item ht-indent1"><span class="ht-icon">🪧</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-sign">ТАБЛ</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
+    case 'photo': return `<div class="history-tree-item ht-indent2"><span class="ht-icon">📷</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-photo">ФОТО</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
+    case 'audio': return `<div class="history-tree-item ht-indent2"><span class="ht-icon">🎙</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-audio">АУДИО</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
+    default: return '';
   }
 }
 
 // ── CLEAR ──────────────────────────────────────────────
 function confirmClear() { document.getElementById('confirmOverlay').style.display='flex'; }
-function clearAll() {
-  state = {booths:[],currentBoothIdx:-1,currentProductIdx:-1,log:[],boothCounter:0,productCounter:0,fileCounter:0,boothStartTime:null,sessionPaused:false,sessionStopped:false,pausedElapsed:0,pauseStartedAt:null};
-  localStorage.removeItem('expocap_v3');
-  clearInterval(boothTimerInterval);
-  document.getElementById('statTimer').textContent = '—';
+async function clearAll() {
+  state = {booths:[],currentBoothIdx:-1,currentProductIdx:-1,log:[],boothCounter:0,productCounter:0,fileCounter:0,boothStartTime:null,sessionPaused:false,sessionStopped:false,pausedElapsed:0,pauseStartedAt:null,zipPart:1};
+  localStorage.removeItem('expocap_v5');
+  await clearDB();
+  clearInterval(boothTimerInterval); document.getElementById('statTimer').textContent = '—';
   document.getElementById('confirmOverlay').style.display = 'none';
-  rebuildFeed(); updateUI();
-  showToast('сессия сброшена'); setStatus('готов к работе');
-}
-
-// ── SERVICE WORKER ─────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
+  rebuildFeed(); updateUI(); showToast('сессия сброшена'); setStatus('готов к работе');
 }
 
 // ── INIT ───────────────────────────────────────────────
-load();
-rebuildFeed();
-if (state.boothStartTime && !state.sessionStopped) startBoothTimer();
-if (state.sessionStopped && state.pausedElapsed) {
-  const s = Math.floor(state.pausedElapsed / 1000);
-  document.getElementById('statTimer').textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-}
-updateUI();
-updateHeaderUser();
-if (state.sessionPaused) setStatus('сессия на паузе', 'pause');
-else if (state.sessionStopped) setStatus('сессия завершена');
-else setStatus('готов к работе');
+window.addEventListener('DOMContentLoaded', async () => {
+  try { await initDB(); } catch(e) { showToast('Ошибка IndexedDB - работа без БД', 3000); }
+  load();
+  if (!state.zipPart) state.zipPart = 1;
+  rebuildFeed();
+  if (state.boothStartTime && !state.sessionStopped && !state.sessionPaused) startBoothTimer();
+  if (state.sessionStopped && state.pausedElapsed) {
+    const s = Math.floor(state.pausedElapsed / 1000); document.getElementById('statTimer').textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  }
+  updateUI(); updateHeaderUser();
+  if (state.sessionPaused) setStatus('сессия на паузе', 'pause'); else if (state.sessionStopped) setStatus('сессия завершена'); else setStatus('готов к работе');
+});
 </script>
 </body>
 </html>
