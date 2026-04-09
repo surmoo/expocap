@@ -5,153 +5,644 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#080808">
 <link rel="manifest" href="manifest.json">
 <title>ExpoCapture</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Bebas+Neue&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@500;700;800&display=swap');
 
   :root {
-    --bg: #0a0a0a; --surface: #141414; --border: #222;
-    --accent: #e8ff00; --accent2: #ff4d00; --text: #f0f0f0;
-    --muted: #555; --danger: #ff3333; --record: #ff2244; --sign: #ff9500;
+    --bg: #080808;
+    --s0: #0e0e0e;
+    --s1: #141414;
+    --s2: #1c1c1c;
+    --border: #242424;
+    --border2: #2e2e2e;
+    --accent: #c8ff00;
+    --accent-dim: #8ab300;
+    --orange: #ff5500;
+    --orange-dim: #9e3400;
+    --blue: #3d9bff;
+    --green: #00e676;
+    --green-dim: #005c30;
+    --green-bg: #031a0e;
+    --purple: #a78bfa;
+    --purple-bg: #0d0a1f;
+    --amber: #ffab00;
+    --amber-bg: #1a1000;
+    --red: #ff3355;
+    --text: #efefef;
+    --text2: #888;
+    --text3: #444;
+    --radius: 6px;
+    --radius-sm: 4px;
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-  .header { padding: 14px 20px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; color: var(--accent); }
-  .header-sub { font-size: 9px; color: var(--muted); text-align: right; line-height: 1.6; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-  .stats-bar { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .stat { flex: 1; padding: 8px 0; text-align: center; border-right: 1px solid var(--border); font-size: 9px; color: var(--muted); letter-spacing: 0.5px; }
+  /* ── HEADER ── */
+  .header {
+    padding: 12px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    background: var(--s0);
+  }
+  .header-left { display: flex; align-items: baseline; gap: 10px; }
+  .logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .logo-sub {
+    font-size: 8px;
+    color: var(--text3);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .header-user {
+    font-size: 9px;
+    color: var(--text2);
+    letter-spacing: 0.5px;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .header-user span { color: var(--accent-dim); }
+  .btn-settings {
+    width: 34px; height: 34px;
+    background: var(--s2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text2);
+    font-size: 15px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .btn-settings:active { background: var(--border); color: var(--text); }
+
+  /* ── STATS ── */
+  .stats-bar {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--s0);
+  }
+  .stat {
+    flex: 1;
+    padding: 9px 4px 7px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+    font-size: 8px;
+    color: var(--text3);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
   .stat:last-child { border-right: none; }
-  .stat-val { display: block; font-size: 17px; font-weight: 700; color: var(--text); line-height: 1.2; }
-  .stat-val.accent { color: var(--accent); }
-  .stat-val.orange { color: var(--accent2); }
-  .stat-val.blue { color: #4d9fff; font-size: 14px; }
+  .stat-val {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .stat-val.c-accent { color: var(--accent); }
+  .stat-val.c-orange { color: var(--orange); }
+  .stat-val.c-blue   { color: var(--blue); font-size: 17px; }
 
-  .breadcrumb { padding: 8px 20px; font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--border); flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* ── BREADCRUMB ── */
+  .breadcrumb {
+    padding: 7px 16px;
+    font-size: 10px;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: var(--s0);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .breadcrumb b { color: var(--text2); font-weight: 700; }
+  .bc-sep { color: var(--text3); }
 
-  .scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; }
+  /* ── FEED ── */
+  .scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
 
-  .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; animation: slideIn 0.15s ease; }
-  @keyframes slideIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-  .item-icon { font-size: 18px; flex-shrink: 0; width: 28px; text-align: center; }
+  .item-card {
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.12s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .item-icon { font-size: 16px; flex-shrink: 0; width: 24px; text-align: center; }
   .item-info { flex: 1; min-width: 0; }
-  .item-name { font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .item-meta { font-size: 9px; color: var(--muted); margin-top: 2px; }
-  .item-tag { font-size: 8px; padding: 2px 6px; border-radius: 2px; font-weight: 700; letter-spacing: 1px; flex-shrink: 0; }
+  .item-name { font-size: 10px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+  .item-meta { font-size: 8px; color: var(--text3); margin-top: 2px; letter-spacing: 0.3px; }
+
+  .item-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
   .tag-booth { background: var(--accent); color: #000; }
-  .tag-item  { background: var(--accent2); color: #fff; }
-  .tag-photo { background: #1a3a1a; color: #4dff4d; border: 1px solid #2a5a2a; }
-  .tag-audio { background: #1a1a3a; color: #4d4dff; border: 1px solid #2a2a5a; }
-  .tag-sign  { background: #2a1a00; color: var(--sign); border: 1px solid #4a2a00; }
+  .tag-item  { background: var(--orange); color: #fff; }
+  .tag-photo { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-dim); }
+  .tag-audio { background: var(--purple-bg); color: var(--purple); border: 1px solid #2d1d6e; }
+  .tag-sign  { background: var(--amber-bg); color: var(--amber); border: 1px solid #4a2c00; }
 
-  .actions { padding: 12px 20px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
-  .btn-row { display: flex; gap: 8px; }
+  /* ── ACTIONS ── */
+  .actions {
+    padding: 10px 12px 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    flex-shrink: 0;
+    background: var(--s0);
+  }
+  .btn-row { display: flex; gap: 7px; }
 
-  .btn { flex: 1; height: 52px; border: none; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 10px; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: transform 0.08s, opacity 0.08s; position: relative; overflow: hidden; text-transform: uppercase; }
-  .btn:active { transform: scale(0.96); opacity: 0.85; }
+  .btn {
+    flex: 1;
+    height: 50px;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 0.07s, filter 0.07s;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+  }
+  .btn:active { transform: scale(0.96); filter: brightness(0.85); }
   .btn:disabled { cursor: default; }
 
-  .btn-booth   { background: var(--accent); color: #000; font-size: 11px; }
-  .btn-product { background: var(--accent2); color: #fff; }
-  .btn-sign    { background: #2a1a00; color: var(--sign); border: 1px solid #4a2a00; }
-  .btn-photo   { background: #1e3a1e; color: #6dff6d; border: 1px solid #2a5a2a; }
-  .btn-audio   { background: #1e1e3a; color: #6d6dff; border: 1px solid #2a2a5a; }
-  .btn-audio.recording { background: #3a0010; color: var(--record); border-color: var(--record); animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,34,68,.3);}50%{box-shadow:0 0 0 8px rgba(255,34,68,0);} }
+  .btn-booth   { background: var(--accent); color: #000; }
+  .btn-product { background: var(--orange); color: #fff; }
+  .btn-sign    { background: var(--amber-bg); color: var(--amber); border: 1px solid #4a2c00; }
+  .btn-photo   { background: var(--green-bg); color: var(--green); border: 1px solid #0a3a1a; }
+  .btn-audio   { background: var(--purple-bg); color: var(--purple); border: 1px solid #1a1050; }
+  .btn-audio.recording {
+    background: #200010;
+    color: var(--red);
+    border: 1px solid var(--red);
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,51,85,.25); }
+    50%      { box-shadow: 0 0 0 8px rgba(255,51,85,0); }
+  }
 
-  .btn-log  { background: transparent; color: var(--muted); border: 1px solid var(--border); height: 40px; font-size: 10px; }
-  .btn-clear{ background: transparent; color: #333; border: 1px solid #1a1a1a; height: 40px; font-size: 9px; flex: 0 0 auto; width: 80px; }
+  .btn-secondary-row { display: flex; gap: 7px; }
+  .btn-log {
+    flex: 1; height: 38px;
+    background: transparent;
+    color: var(--text3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    text-transform: uppercase;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .btn-log:active { color: var(--text2); border-color: var(--border2); }
 
-  .rec-timer { position: absolute; right: 10px; font-size: 9px; color: var(--record); font-weight: 700; }
+  .btn-clear {
+    height: 38px;
+    width: 80px;
+    background: transparent;
+    color: var(--text3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    text-transform: uppercase;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .btn-clear:active { color: var(--red); border-color: var(--red); }
 
-  .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 11px; padding: 40px; text-align: center; }
-  .empty-icon { font-size: 36px; opacity: 0.3; }
+  .rec-timer { position: absolute; right: 10px; font-size: 10px; color: var(--red); font-weight: 700; font-family: 'Space Mono', monospace; }
 
-  /* PREVIEW */
-  .preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 20px; gap: 16px; }
-  .preview-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
-  .preview-overlay img { max-width: 100%; max-height: 58dvh; border-radius: 4px; border: 1px solid var(--border); object-fit: contain; }
-  .preview-actions { display: flex; gap: 12px; width: 100%; max-width: 400px; }
-  .btn-keep    { flex:1; height:50px; background:var(--accent); color:#000; border:none; border-radius:4px; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px; cursor:pointer; }
-  .btn-discard { flex:1; height:50px; background:transparent; color:var(--danger); border:1px solid var(--danger); border-radius:4px; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px; cursor:pointer; }
+  /* ── EMPTY ── */
+  .empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--text3);
+    font-size: 10px;
+    padding: 40px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+  .empty-icon { font-size: 34px; opacity: 0.25; }
+  .empty-hint { color: var(--text3); font-size: 9px; line-height: 1.8; }
 
-  /* TOAST */
-  .toast { position:fixed; bottom:110px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface); border:1px solid var(--border); color:var(--text); padding:9px 18px; border-radius:4px; font-size:11px; opacity:0; transition:all 0.2s; pointer-events:none; white-space:nowrap; z-index:200; }
-  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  /* ── STATUS BAR ── */
+  .status-bar {
+    padding: 4px 16px;
+    font-size: 8px;
+    color: var(--text3);
+    border-top: 1px solid var(--border);
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--s0);
+    text-transform: uppercase;
+  }
+  .status-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    flex-shrink: 0;
+  }
+  .status-dot.red { background: var(--red); animation: pulse 1s infinite; }
 
-  .status-bar { padding:5px 20px; font-size:9px; color:var(--muted); border-top:1px solid var(--border); letter-spacing:0.5px; flex-shrink:0; }
-  .status-dot { display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--accent); margin-right:6px; vertical-align:middle; }
-  .status-dot.red { background:var(--record); animation:pulse 1s infinite; }
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--s2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    opacity: 0;
+    transition: all 0.18s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   #fileInput, #signInput { display: none; }
 
-  /* CONFIRM */
-  .confirm-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:300; padding:30px; }
-  .confirm-box { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:24px; max-width:320px; width:100%; text-align:center; }
-  .confirm-title { font-size:13px; font-weight:700; margin-bottom:8px; color:var(--danger); }
-  .confirm-text  { font-size:10px; color:var(--muted); margin-bottom:20px; line-height:1.6; }
-  .confirm-btns  { display:flex; gap:10px; }
-  .btn-confirm-yes { flex:1; height:44px; background:var(--danger); color:#fff; border:none; border-radius:4px; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; cursor:pointer; }
-  .btn-confirm-no  { flex:1; height:44px; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:4px; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; cursor:pointer; }
+  /* ── OVERLAY BASE ── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+  }
+  .overlay-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    background: var(--s0);
+  }
+  .overlay-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .btn-close {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .btn-close:active { background: var(--s2); }
 
-  /* LOG OVERLAY */
-  .log-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.94); display:flex; flex-direction:column; z-index:100; padding:20px; gap:12px; }
-  .log-header { display:flex; align-items:center; justify-content:space-between; }
-  .log-title { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:2px; color:var(--accent); }
-  .log-close { background:transparent; border:1px solid var(--border); color:var(--muted); padding:6px 14px; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; }
-  .log-body { flex:1; overflow-y:auto; font-size:10px; color:var(--muted); line-height:2; }
-  .log-body b { color:var(--text); }
-  .log-body .log-sign { color:var(--sign); }
-  .log-body .log-photo { color:#4dff4d; }
-  .log-body .log-audio { color:#4d4dff; }
+  /* ── PREVIEW OVERLAY ── */
+  .preview-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.96);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+    gap: 16px;
+  }
+  .preview-label { font-size: 9px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; }
+  .preview-overlay img {
+    max-width: 100%; max-height: 58dvh;
+    border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    object-fit: contain;
+  }
+  .preview-actions { display: flex; gap: 12px; width: 100%; max-width: 400px; }
+  .btn-keep {
+    flex: 1; height: 52px;
+    background: var(--accent); color: #000;
+    border: none; border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 16px; letter-spacing: 1.5px;
+    cursor: pointer; text-transform: uppercase;
+  }
+  .btn-discard {
+    flex: 1; height: 52px;
+    background: transparent; color: var(--red);
+    border: 1px solid var(--red); border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 16px; letter-spacing: 1.5px;
+    cursor: pointer; text-transform: uppercase;
+  }
+  .btn-keep:active    { filter: brightness(0.88); }
+  .btn-discard:active { filter: brightness(0.88); }
+
+  /* ── CONFIRM OVERLAY ── */
+  .confirm-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.88);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 300;
+    padding: 30px;
+  }
+  .confirm-box {
+    background: var(--s1);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 24px;
+    max-width: 320px; width: 100%;
+    text-align: center;
+  }
+  .confirm-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 18px; letter-spacing: 1.5px;
+    margin-bottom: 8px; color: var(--red);
+    text-transform: uppercase;
+  }
+  .confirm-text { font-size: 10px; color: var(--text2); margin-bottom: 20px; line-height: 1.8; }
+  .confirm-btns { display: flex; gap: 10px; }
+  .btn-confirm-yes {
+    flex: 1; height: 44px;
+    background: var(--red); color: #fff;
+    border: none; border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px;
+    cursor: pointer; text-transform: uppercase;
+  }
+  .btn-confirm-no {
+    flex: 1; height: 44px;
+    background: transparent; color: var(--text2);
+    border: 1px solid var(--border2); border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px;
+    cursor: pointer; text-transform: uppercase;
+  }
+
+  /* ── LOG OVERLAY ── */
+  .log-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.95);
+    display: flex; flex-direction: column;
+    z-index: 100;
+  }
+  .log-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    font-size: 9.5px;
+    color: var(--text3);
+    line-height: 2.2;
+    -webkit-overflow-scrolling: touch;
+  }
+  .log-body b { color: var(--text); }
+  .log-sign  { color: var(--amber); }
+  .log-photo { color: var(--green); }
+  .log-audio { color: var(--purple); }
+
+  /* ── SETTINGS OVERLAY ── */
+  .settings-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.95);
+    display: flex; flex-direction: column;
+    z-index: 100;
+  }
+  .settings-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .settings-section {
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .settings-section-title {
+    padding: 10px 14px;
+    font-size: 8px;
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    background: var(--s2);
+  }
+  .settings-row {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .settings-label { font-size: 10px; color: var(--text2); letter-spacing: 0.5px; }
+  .settings-hint  { font-size: 8px; color: var(--text3); line-height: 1.6; letter-spacing: 0.3px; }
+  .settings-input {
+    background: var(--s0);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 10px 12px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  .settings-input:focus { border-color: var(--accent-dim); }
+  .settings-input::placeholder { color: var(--text3); }
+
+  .settings-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  .settings-row-inline {
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .settings-row-inline-info { display: flex; flex-direction: column; gap: 3px; }
+
+  .btn-action {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: var(--radius-sm);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 13px; letter-spacing: 1px;
+    cursor: pointer; text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: flex; align-items: center; gap: 5px;
+    transition: filter 0.1s;
+  }
+  .btn-action:active { filter: brightness(0.85); }
+  .btn-action-save {
+    background: var(--accent); color: #000;
+    border: none;
+  }
+  .btn-action-danger {
+    background: transparent; color: var(--red);
+    border: 1px solid #4a0015;
+  }
+  .btn-action-warning {
+    background: transparent; color: var(--amber);
+    border: 1px solid #4a2c00;
+  }
+
+  .settings-version {
+    text-align: center;
+    font-size: 8px;
+    color: var(--text3);
+    letter-spacing: 1px;
+    padding-bottom: 8px;
+  }
 </style>
 </head>
 <body>
 
+<!-- ── HEADER ─────────────────────────────────────────── -->
 <div class="header">
-  <div class="logo">EXPOCAP</div>
-  <div class="header-sub">файлы → Downloads<br>работает офлайн</div>
+  <div class="header-left">
+    <div class="logo">ExpoCAP</div>
+    <div class="logo-sub">field collector</div>
+  </div>
+  <div class="header-right">
+    <div class="header-user" id="headerUser"></div>
+    <button class="btn-settings" onclick="openSettings()" title="Настройки">⚙</button>
+  </div>
 </div>
 
+<!-- ── STATS ──────────────────────────────────────────── -->
 <div class="stats-bar">
-  <div class="stat"><span class="stat-val accent" id="statBooths">0</span>стендов</div>
-  <div class="stat"><span class="stat-val orange" id="statProducts">0</span>товаров</div>
+  <div class="stat"><span class="stat-val c-accent" id="statBooths">0</span>стендов</div>
+  <div class="stat"><span class="stat-val c-orange" id="statProducts">0</span>товаров</div>
   <div class="stat"><span class="stat-val" id="statPhotos">0</span>фото</div>
   <div class="stat"><span class="stat-val" id="statAudios">0</span>аудио</div>
-  <div class="stat"><span class="stat-val blue" id="statTimer">—</span>стенд</div>
+  <div class="stat"><span class="stat-val c-blue" id="statTimer">—</span>стенд</div>
 </div>
 
-<div class="breadcrumb" id="breadcrumb">/ нет активного стенда</div>
+<!-- ── BREADCRUMB ─────────────────────────────────────── -->
+<div class="breadcrumb" id="breadcrumb">
+  <span style="color:var(--text3)">/</span>
+  <span style="color:var(--text3)">нет активного стенда</span>
+</div>
 
+<!-- ── FEED ───────────────────────────────────────────── -->
 <div class="scroll-area" id="scrollArea">
   <div class="empty" id="emptyState">
     <div class="empty-icon">📦</div>
     <div>Нажми СТЕНД чтобы начать</div>
+    <div class="empty-hint">стенд → товар → фото / аудио<br>файлы сразу в Downloads</div>
   </div>
 </div>
 
+<!-- ── ACTIONS ────────────────────────────────────────── -->
 <div class="actions">
   <div class="btn-row">
-    <button class="btn btn-booth"   onclick="newBooth()">＋ СТЕНД</button>
-    <button class="btn btn-product" onclick="newProduct()" id="btnProduct" disabled style="opacity:.35">＋ ТОВАР</button>
+    <button class="btn btn-booth"   onclick="newBooth()">＋ Стенд</button>
+    <button class="btn btn-product" onclick="newProduct()" id="btnProduct" disabled style="opacity:.3">＋ Товар</button>
   </div>
   <div class="btn-row">
-    <button class="btn btn-sign" onclick="takeSign()" id="btnSign" disabled style="opacity:.35">🪧 ТАБЛИЧКА СТЕНДА</button>
+    <button class="btn btn-sign" onclick="takeSign()" id="btnSign" disabled style="opacity:.3">🪧 Табличка стенда</button>
   </div>
   <div class="btn-row">
-    <button class="btn btn-photo" onclick="takePhoto()" id="btnPhoto" disabled style="opacity:.35">📷 ФОТО ТОВАРА</button>
-    <button class="btn btn-audio" onclick="toggleAudio()" id="btnAudio" disabled style="opacity:.35">🎙 АУДИО</button>
+    <button class="btn btn-photo" onclick="takePhoto()" id="btnPhoto" disabled style="opacity:.3">📷 Фото товара</button>
+    <button class="btn btn-audio" onclick="toggleAudio()" id="btnAudio" disabled style="opacity:.3">🎙 Аудио</button>
   </div>
-  <div class="btn-row">
-    <button class="btn btn-log" onclick="showLog()" style="flex:1">📋 ЛОГ СЕССИИ</button>
-    <button class="btn btn-clear" onclick="confirmClear()">🗑 СБРОС</button>
+  <div class="btn-secondary-row">
+    <button class="btn-log" onclick="showLog()">📋 Лог сессии</button>
+    <button class="btn-clear" onclick="confirmClear()">🗑 Сброс</button>
   </div>
 </div>
 
+<!-- ── STATUS BAR ─────────────────────────────────────── -->
 <div class="status-bar">
   <span class="status-dot" id="statusDot"></span>
   <span id="statusText">готов к работе</span>
@@ -161,50 +652,152 @@
 <input type="file" id="fileInput" accept="image/*" capture="environment">
 <input type="file" id="signInput" accept="image/*" capture="environment">
 
-<!-- PREVIEW -->
+<!-- ── PREVIEW ────────────────────────────────────────── -->
 <div class="preview-overlay" id="previewOverlay" style="display:none">
   <div class="preview-label" id="previewLabel">ФОТО</div>
   <img id="previewImg" src="" alt="">
   <div class="preview-actions">
-    <button class="btn-keep"    onclick="keepPhoto()">✓ СОХРАНИТЬ</button>
-    <button class="btn-discard" onclick="discardPhoto()">✕ УДАЛИТЬ</button>
+    <button class="btn-keep"    onclick="keepPhoto()">✓ Сохранить</button>
+    <button class="btn-discard" onclick="discardPhoto()">✕ Удалить</button>
   </div>
 </div>
 
-<!-- CONFIRM -->
+<!-- ── CONFIRM ────────────────────────────────────────── -->
 <div class="confirm-overlay" id="confirmOverlay" style="display:none">
   <div class="confirm-box">
-    <div class="confirm-title">⚠ СБРОСИТЬ СЕССИЮ?</div>
+    <div class="confirm-title">⚠ Сбросить сессию?</div>
     <div class="confirm-text">Лог сессии будет очищен.<br>Файлы в Downloads останутся.</div>
     <div class="confirm-btns">
-      <button class="btn-confirm-yes" onclick="clearAll()">СБРОСИТЬ</button>
-      <button class="btn-confirm-no"  onclick="document.getElementById('confirmOverlay').style.display='none'">ОТМЕНА</button>
+      <button class="btn-confirm-yes" onclick="clearAll()">Сбросить</button>
+      <button class="btn-confirm-no"  onclick="document.getElementById('confirmOverlay').style.display='none'">Отмена</button>
     </div>
   </div>
 </div>
 
-<!-- LOG -->
+<!-- ── LOG ────────────────────────────────────────────── -->
 <div class="log-overlay" id="logOverlay" style="display:none">
-  <div class="log-header">
-    <div class="log-title">ЛОГ СЕССИИ</div>
-    <button class="log-close" onclick="document.getElementById('logOverlay').style.display='none'">ЗАКРЫТЬ</button>
+  <div class="overlay-header">
+    <div class="overlay-title">Лог сессии</div>
+    <button class="btn-close" onclick="document.getElementById('logOverlay').style.display='none'">Закрыть</button>
   </div>
   <div class="log-body" id="logBody"></div>
 </div>
 
+<!-- ── SETTINGS ───────────────────────────────────────── -->
+<div class="settings-overlay" id="settingsOverlay" style="display:none">
+  <div class="overlay-header">
+    <div class="overlay-title">Настройки</div>
+    <button class="btn-close" onclick="closeSettings()">Закрыть</button>
+  </div>
+
+  <div class="settings-body">
+
+    <!-- Профиль -->
+    <div class="settings-section">
+      <div class="settings-section-title">Профиль оператора</div>
+      <div class="settings-row">
+        <div class="settings-label">Ваше имя / подпись</div>
+        <div class="settings-hint">Добавляется в имена файлов и лог. Например: andrey или team_a</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="settings-input" id="settingsName" type="text" maxlength="32"
+                 placeholder="operator" autocomplete="off" autocorrect="off" spellcheck="false">
+          <button class="btn-action btn-action-save" onclick="saveName()">Сохранить</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Кеш -->
+    <div class="settings-section">
+      <div class="settings-section-title">Кеш и хранилище</div>
+
+      <div class="settings-row-inline">
+        <div class="settings-row-inline-info">
+          <div class="settings-label">Кеш сервис-воркера</div>
+          <div class="settings-hint">Офлайн-оболочка приложения. Очищать при обновлении.</div>
+        </div>
+        <button class="btn-action btn-action-warning" onclick="clearSWCache()">🗄 Очистить</button>
+      </div>
+
+      <hr class="settings-divider">
+
+      <div class="settings-row-inline">
+        <div class="settings-row-inline-info">
+          <div class="settings-label">Данные сессии (localStorage)</div>
+          <div class="settings-hint">Стенды, товары, лог текущей сессии.</div>
+        </div>
+        <button class="btn-action btn-action-danger" onclick="confirmClearFromSettings()">🗑 Сброс</button>
+      </div>
+    </div>
+
+    <!-- О приложении -->
+    <div class="settings-section">
+      <div class="settings-section-title">О приложении</div>
+      <div class="settings-row" style="gap:6px">
+        <div class="settings-hint" style="line-height:2">
+          <b style="color:var(--text2)">ExpoCapture</b> — полевой сборщик данных с выставки<br>
+          Файлы сразу скачиваются в Downloads<br>
+          Работает офлайн (PWA)<br>
+          <br>
+          Формат имени файла:<br>
+          <span style="color:var(--accent-dim)">booth_001__product_002__photo_003__оператор__дата.jpg</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-version">EXPOCAPTURE v3 · PWA · OFFLINE</div>
+  </div>
+</div>
+
 <script>
 // ── STATE ──────────────────────────────────────────────
-// Хранится в localStorage — восстанавливается после закрытия
-// Файлы скачиваются сразу в Downloads — не теряются никогда
 let state = {
   booths: [], currentBoothIdx: -1, currentProductIdx: -1,
-  log: [],   // [{ts, type, boothName, productName, fname}]
+  log: [],
   boothCounter: 0, productCounter: 0, fileCounter: 0,
   boothStartTime: null,
 };
 
 let mediaRecorder = null, audioChunks = [], recTimerInterval = null;
 let boothTimerInterval = null, pendingPhoto = null;
+
+// ── SETTINGS ───────────────────────────────────────────
+function getOperatorName() {
+  return localStorage.getItem('expocap_operator') || '';
+}
+function openSettings() {
+  document.getElementById('settingsName').value = getOperatorName();
+  document.getElementById('settingsOverlay').style.display = 'flex';
+}
+function closeSettings() {
+  document.getElementById('settingsOverlay').style.display = 'none';
+}
+function saveName() {
+  const v = document.getElementById('settingsName').value.trim().replace(/[^a-zA-Zа-яА-ЯёЁ0-9_-]/g,'_');
+  localStorage.setItem('expocap_operator', v);
+  updateHeaderUser();
+  showToast(v ? `оператор: ${v}` : 'имя сброшено');
+}
+function updateHeaderUser() {
+  const name = getOperatorName();
+  const el = document.getElementById('headerUser');
+  el.innerHTML = name ? `<span>${name}</span>` : '';
+}
+
+// ── CLEAR SW CACHE ────────────────────────────────────
+async function clearSWCache() {
+  try {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    showToast(`кеш очищен (${keys.length} записей)`);
+  } catch(e) {
+    showToast('не удалось очистить кеш');
+  }
+}
+
+function confirmClearFromSettings() {
+  closeSettings();
+  document.getElementById('confirmOverlay').style.display = 'flex';
+}
 
 // ── PERSISTENCE ────────────────────────────────────────
 function save() {
@@ -219,7 +812,7 @@ function load() {
 }
 
 // ── HELPERS ────────────────────────────────────────────
-function tsISO() { return new Date().toISOString(); }
+function tsISO()  { return new Date().toISOString(); }
 function tsFile() { return new Date().toISOString().replace(/[:.]/g,'-').slice(0,19); }
 function pad(n)   { return String(n).padStart(3,'0'); }
 
@@ -237,19 +830,24 @@ function currentProduct() { const b=currentBooth(); return b?(b.products[state.c
 
 function updateUI() {
   const b = currentBooth(), p = currentProduct();
-  // stats
-  document.getElementById('statBooths').textContent  = state.booths.length;
+  document.getElementById('statBooths').textContent   = state.booths.length;
   document.getElementById('statProducts').textContent = state.booths.reduce((a,x)=>a+x.products.length,0);
   document.getElementById('statPhotos').textContent   = state.log.filter(x=>x.type==='photo'||x.type==='sign').length;
   document.getElementById('statAudios').textContent   = state.log.filter(x=>x.type==='audio').length;
+
   // breadcrumb
-  document.getElementById('breadcrumb').innerHTML = b
-    ? `/ <b>${b.name}</b>${p?' / <b>'+p.name+'</b>':' / нет товара'}`
-    : '/ нет активного стенда';
-  // buttons
-  const set=(id,on)=>{ const el=document.getElementById(id); el.disabled=!on; el.style.opacity=on?'1':'0.35'; };
+  const bc = document.getElementById('breadcrumb');
+  if (b) {
+    bc.innerHTML = `<span style="color:var(--text3)">/</span><b>${b.name}</b>`
+      + (p ? `<span class="bc-sep">/</span><b>${p.name}</b>`
+           : `<span class="bc-sep">/</span><span style="color:var(--text3)">нет товара</span>`);
+  } else {
+    bc.innerHTML = `<span style="color:var(--text3)">/</span><span style="color:var(--text3)">нет активного стенда</span>`;
+  }
+
+  const set=(id,on)=>{ const el=document.getElementById(id); el.disabled=!on; el.style.opacity=on?'1':'0.3'; };
   set('btnProduct', !!b); set('btnSign', !!b);
-  set('btnPhoto', !!p);   set('btnAudio', !!p);
+  set('btnPhoto',   !!p); set('btnAudio', !!p);
 }
 
 function startBoothTimer() {
@@ -276,7 +874,7 @@ function rebuildFeed() {
   const area = document.getElementById('scrollArea');
   area.innerHTML = '';
   if (!state.booths.length) {
-    area.innerHTML = '<div class="empty" id="emptyState"><div class="empty-icon">📦</div><div>Нажми СТЕНД чтобы начать</div></div>';
+    area.innerHTML = '<div class="empty" id="emptyState"><div class="empty-icon">📦</div><div>Нажми СТЕНД чтобы начать</div><div class="empty-hint">стенд → товар → фото / аудио<br>файлы сразу в Downloads</div></div>';
     return;
   }
   for (const b of state.booths) {
@@ -297,6 +895,14 @@ function downloadBlob(blob, filename) {
   const a = document.createElement('a');
   a.href = url; a.download = filename; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+// ── FILENAME BUILDER ───────────────────────────────────
+function buildFilename(parts, ext) {
+  const op = getOperatorName();
+  const base = parts.join('__');
+  const ts   = tsFile();
+  return op ? `${base}__${op}__${ts}.${ext}` : `${base}__${ts}.${ext}`;
 }
 
 // ── BOOTH ──────────────────────────────────────────────
@@ -335,9 +941,10 @@ function takeSign() {
 document.getElementById('signInput').addEventListener('change', e => {
   const file = e.target.files[0]; if (!file) return;
   state.fileCounter++;
-  const fname = `${currentBooth().id}__sign__${pad(state.fileCounter)}__${tsFile()}.jpg`;
+  const b = currentBooth();
+  const fname = buildFilename([b.id, 'sign', pad(state.fileCounter)], 'jpg');
   pendingPhoto = {blob:file, fname, type:'sign'};
-  document.getElementById('previewLabel').textContent = '🪧 ТАБЛИЧКА СТЕНДА';
+  document.getElementById('previewLabel').textContent = '🪧 Табличка стенда';
   document.getElementById('previewImg').src = URL.createObjectURL(file);
   document.getElementById('previewOverlay').style.display = 'flex';
   e.target.value = '';
@@ -352,9 +959,9 @@ document.getElementById('fileInput').addEventListener('change', e => {
   const file = e.target.files[0]; if (!file) return;
   const b=currentBooth(), p=currentProduct();
   state.fileCounter++;
-  const fname = `${b.id}__${p.id}__photo_${pad(state.fileCounter)}__${tsFile()}.jpg`;
+  const fname = buildFilename([b.id, p.id, `photo_${pad(state.fileCounter)}`], 'jpg');
   pendingPhoto = {blob:file, fname, type:'photo'};
-  document.getElementById('previewLabel').textContent = '📷 ФОТО ТОВАРА';
+  document.getElementById('previewLabel').textContent = '📷 Фото товара';
   document.getElementById('previewImg').src = URL.createObjectURL(file);
   document.getElementById('previewOverlay').style.display = 'flex';
   e.target.value = '';
@@ -364,21 +971,11 @@ function keepPhoto() {
   if (!pendingPhoto) return;
   const {blob, fname, type} = pendingPhoto;
   const b = currentBooth(), p = currentProduct();
-
-  // Скачиваем СРАЗУ в Downloads
   downloadBlob(blob, fname);
-
-  // Логируем
-  state.log.push({
-    ts: tsISO(), type, fname,
-    boothName: b.name,
-    productName: p?.name || null,
-  });
-
+  state.log.push({ ts:tsISO(), type, fname, boothName:b.name, productName:p?.name||null });
   const ctx = type==='sign' ? b.name : `${b.name}/${p.name}`;
   if (type==='sign') addCard('🪧', fname, ctx, 'ТАБЛИЧКА', 'tag-sign');
   else               addCard('📷', fname, ctx, 'ФОТО',     'tag-photo');
-
   URL.revokeObjectURL(document.getElementById('previewImg').src);
   document.getElementById('previewOverlay').style.display = 'none';
   pendingPhoto = null;
@@ -411,7 +1008,7 @@ async function startAudio() {
     const t0 = Date.now();
     const btn = document.getElementById('btnAudio');
     btn.classList.add('recording');
-    btn.innerHTML = '⏹ СТОП <span class="rec-timer" id="recTimer">0:00</span>';
+    btn.innerHTML = '⏹ Стоп <span class="rec-timer" id="recTimer">0:00</span>';
     recTimerInterval = setInterval(() => {
       const s = Math.floor((Date.now()-t0)/1000);
       const el = document.getElementById('recTimer');
@@ -428,17 +1025,14 @@ function stopAudio() {
   clearInterval(recTimerInterval);
   const btn = document.getElementById('btnAudio');
   btn.classList.remove('recording');
-  btn.innerHTML = '🎙 АУДИО';
+  btn.innerHTML = '🎙 Аудио';
 }
 function saveAudio() {
   const b=currentBooth(), p=currentProduct(); if (!b||!p) return;
   state.fileCounter++;
   const blob = new Blob(audioChunks, {type:'audio/webm'});
-  const fname = `${b.id}__${p.id}__audio_${pad(state.fileCounter)}__${tsFile()}.webm`;
-
-  // Скачиваем СРАЗУ в Downloads
+  const fname = buildFilename([b.id, p.id, `audio_${pad(state.fileCounter)}`], 'webm');
   downloadBlob(blob, fname);
-
   state.log.push({ts:tsISO(), type:'audio', fname, boothName:b.name, productName:p.name});
   addCard('🎙', fname, `${b.name}/${p.name}`, 'АУДИО', 'tag-audio');
   updateUI(); save();
@@ -450,7 +1044,7 @@ function saveAudio() {
 function showLog() {
   const body = document.getElementById('logBody');
   if (!state.log.length && !state.booths.length) {
-    body.innerHTML = '<span style="color:var(--muted)">пусто</span>';
+    body.innerHTML = '<span style="color:var(--text3)">пусто</span>';
   } else {
     let html = '';
     for (const b of state.booths) {
@@ -467,7 +1061,7 @@ function showLog() {
         html += `&nbsp;&nbsp;<span class="log-sign">🪧 ${e.fname}</span><br>`;
       }
     }
-    body.innerHTML = html || '<span style="color:var(--muted)">пусто</span>';
+    body.innerHTML = html || '<span style="color:var(--text3)">пусто</span>';
   }
   document.getElementById('logOverlay').style.display = 'flex';
 }
@@ -484,16 +1078,17 @@ function clearAll() {
   showToast('сессия сброшена'); setStatus('готов к работе');
 }
 
-// ── SERVICE WORKER ────────────────────────────────────
+// ── SERVICE WORKER ─────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
-// ── INIT ──────────────────────────────────────────────
+// ── INIT ───────────────────────────────────────────────
 load();
 rebuildFeed();
 if (state.boothStartTime) startBoothTimer();
 updateUI();
+updateHeaderUser();
 setStatus('готов к работе');
 </script>
 </body>
