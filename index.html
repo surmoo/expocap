@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.json">
 <title>ExpoCapture</title>
 
+<!-- Локальная библиотека для ZIP -->
 <script src="./jszip.min.js"></script>
 
 <style>
@@ -43,7 +44,12 @@
     --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  * { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    -webkit-tap-highlight-color: transparent; 
+  }
 
   body {
     background: var(--bg);
@@ -139,9 +145,23 @@
 
   /* ── WARNING BANNER ── */
   .warning-banner { 
-    background: #4a0015; color: #ffab00; padding: 10px; text-align: center; font-size: 10px; font-family: var(--font-ui); font-weight: bold; border-bottom: 1px solid var(--red); display: none; flex-shrink: 0; animation: pulseBg 2s infinite; letter-spacing: 1px;
+    background: #4a0015; 
+    color: #ffab00; 
+    padding: 10px; 
+    text-align: center; 
+    font-size: 10px; 
+    font-family: var(--font-ui); 
+    font-weight: bold; 
+    border-bottom: 1px solid var(--red); 
+    display: none; 
+    flex-shrink: 0; 
+    animation: pulseBg 2s infinite; 
+    letter-spacing: 1px;
   }
-  @keyframes pulseBg { 0%,100% { background: #4a0015; } 50% { background: #6a0015; } }
+  @keyframes pulseBg { 
+    0%,100% { background: #4a0015; } 
+    50% { background: #6a0015; } 
+  }
 
   /* ── BREADCRUMB ── */
   .breadcrumb {
@@ -161,7 +181,7 @@
   .breadcrumb b { color: var(--text2); font-weight: 700; }
   .bc-sep { color: var(--text3); }
 
-  /* ── FEED ── */
+  /* ── FEED (MAIN AREA) ── */
   .scroll-area {
     flex: 1;
     overflow-y: auto;
@@ -212,7 +232,7 @@
   .tag-audio { background: var(--purple-bg); color: var(--purple); border: 1px solid #2d1d6e; }
   .tag-sign  { background: var(--amber-bg); color: var(--amber); border: 1px solid #4a2c00; }
 
-  /* ── ACTIONS ── */
+  /* ── ACTIONS (BOTTOM BAR) ── */
   .actions {
     padding: 10px 12px 12px;
     border-top: 1px solid var(--border);
@@ -260,10 +280,6 @@
     border: 1px solid var(--red);
     animation: pulse 1s infinite;
   }
-  @keyframes pulse {
-    0%,100% { box-shadow: 0 0 0 0 rgba(255,51,85,.25); }
-    50%      { box-shadow: 0 0 0 8px rgba(255,51,85,0); }
-  }
 
   /* ── SESSION CONTROLS ── */
   .session-controls {
@@ -304,7 +320,7 @@
 
   .rec-timer { position: absolute; right: 10px; font-size: 10px; color: var(--red); font-weight: 700; font-family: var(--font-mono); }
 
-  /* ── EMPTY ── */
+  /* ── EMPTY STATE ── */
   .empty {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
     color: var(--text3); font-size: 10px; padding: 40px; text-align: center; letter-spacing: 0.5px;
@@ -333,7 +349,7 @@
 
   #fileInput, #signInput { display: none; }
 
-  /* ── OVERLAYS ── */
+  /* ── OVERLAYS (BASE) ── */
   .overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; z-index: 100;
   }
@@ -342,6 +358,7 @@
     justify-content: space-between; flex-shrink: 0; background: var(--s0);
   }
   .overlay-title { font-family: var(--font-ui); font-weight: 800; font-size: 24px; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
+  
   .btn-close {
     background: transparent; border: 1px solid var(--border2); color: var(--text2); padding: 6px 14px;
     border-radius: var(--radius-sm); font-family: var(--font-ui); font-weight: 700; font-size: 13px;
@@ -349,16 +366,19 @@
   }
   .btn-close:active { background: var(--s2); }
 
-  .preview-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.96); display: flex; flex-direction: column;
-    align-items: center; justify-content: center; z-index: 100; padding: 20px; gap: 16px;
+  /* ── HISTORY & SETTINGS MODALS ── */
+  .history-overlay, .settings-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.95);
+    display: flex; flex-direction: column;
+    z-index: 100;
   }
-  .preview-label { font-size: 9px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; }
-  .preview-overlay img { max-width: 100%; max-height: 58dvh; border-radius: var(--radius); border: 1px solid var(--border2); object-fit: contain; }
-  .preview-actions { display: flex; gap: 12px; width: 100%; max-width: 400px; }
-  .btn-keep { flex: 1; height: 52px; background: var(--accent); color: #000; border: none; border-radius: var(--radius); font-family: var(--font-ui); font-weight: 800; font-size: 16px; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; }
-  .btn-discard { flex: 1; height: 52px; background: transparent; color: var(--red); border: 1px solid var(--red); border-radius: var(--radius); font-family: var(--font-ui); font-weight: 800; font-size: 16px; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; }
+
+  .history-body, .settings-body { 
+    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px 20px; min-height: 0; 
+  }
   
+  /* ── CONFIRM OVERLAYS ── */
   .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 30px; }
   .confirm-box { background: var(--s1); border: 1px solid var(--border2); border-radius: var(--radius); padding: 24px; max-width: 320px; width: 100%; text-align: center; }
   .confirm-title { font-family: var(--font-ui); font-weight: 800; font-size: 18px; letter-spacing: 1px; margin-bottom: 8px; color: var(--red); text-transform: uppercase; }
@@ -367,8 +387,7 @@
   .btn-confirm-yes { flex: 1; height: 44px; background: var(--red); color: #fff; border: none; border-radius: var(--radius); font-family: var(--font-ui); font-weight: 700; font-size: 14px; cursor: pointer; text-transform: uppercase; }
   .btn-confirm-no { flex: 1; height: 44px; background: transparent; color: var(--text2); border: 1px solid var(--border2); border-radius: var(--radius); font-family: var(--font-ui); font-weight: 700; font-size: 14px; cursor: pointer; text-transform: uppercase; }
 
-  /* SETTINGS & HISTORY BODY */
-  .history-body, .settings-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px 20px; min-height: 0; }
+  /* ── HISTORY DETAILS ── */
   .history-empty { padding: 60px 20px; text-align: center; color: var(--text3); font-size: 10px; }
   .history-day { margin-bottom: 16px; }
   .history-day-header { display: flex; align-items: center; gap: 10px; padding: 8px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
@@ -382,8 +401,10 @@
   .history-tree-item .ht-name { color: var(--text2); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .history-tree-item .ht-tag  { font-size: 7px; padding: 1px 5px; border-radius: 2px; letter-spacing: 0.5px; font-weight: 700; flex-shrink: 0; }
   .ht-booth .ht-name { color: var(--accent-dim); font-weight: 700; }
-  .ht-indent1 { padding-left: 20px; } .ht-indent2 { padding-left: 36px; }
+  .ht-indent1 { padding-left: 20px; } 
+  .ht-indent2 { padding-left: 36px; }
 
+  /* ── SETTINGS DETAILS ── */
   .settings-section { background: var(--s1); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 15px;}
   .settings-section-title { padding: 10px 14px; font-size: 8px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--s2); }
   .settings-row { padding: 14px; display: flex; flex-direction: column; gap: 8px; }
@@ -393,18 +414,20 @@
   .settings-input:focus { border-color: var(--accent-dim); }
   .settings-row-inline { padding: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .settings-row-inline-info { display: flex; flex-direction: column; gap: 3px; }
+  
   .btn-action { height: 40px; padding: 0 16px; border-radius: var(--radius-sm); font-family: var(--font-ui); font-weight: 700; font-size: 13px; cursor: pointer; text-transform: uppercase; }
   .btn-action-warning { background: transparent; color: var(--amber); border: 1px solid #4a2c00; }
   .btn-action-danger { background: transparent; color: var(--red); border: 1px solid #4a0015; }
+  
   .settings-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0; background: var(--s0); }
   .settings-footer .btn { height: 46px; font-size: 14px; }
   .btn-back { background: var(--s2); color: var(--text2); border: 1px solid var(--border2); }
   .btn-save-all { background: var(--accent); color: #000; }
-
 </style>
 </head>
 <body>
 
+<!-- ── HEADER ─────────────────────────────────────────── -->
 <div class="header">
   <div class="header-left">
     <div class="logo">ExpoCAP</div>
@@ -416,6 +439,7 @@
   </div>
 </div>
 
+<!-- ── STATS ──────────────────────────────────────────── -->
 <div class="stats-bar">
   <div class="stat"><span class="stat-val c-accent" id="statBooths">0</span>стендов</div>
   <div class="stat"><span class="stat-val c-orange" id="statProducts">0</span>товаров</div>
@@ -423,20 +447,24 @@
   <div class="stat"><span class="stat-val c-blue" id="statTimer">—</span>стенд</div>
 </div>
 
+<!-- ── WARNING BANNER ─────────────────────────────────── -->
 <div class="warning-banner" id="warningBanner">
   ⚠ НАКОПИЛОСЬ МНОГО ФАЙЛОВ. СКАЧАЙТЕ ZIP АРХИВ!
 </div>
 
+<!-- ── SESSION CONTROLS ────────────────────────────────── -->
 <div class="session-controls" id="sessionControls" style="display:none">
   <button class="sc-btn sc-pause" onclick="togglePause()" id="btnPause">⏸ Пауза</button>
   <button class="sc-btn sc-stop" onclick="confirmStopSession()" id="btnStop">⏹ Стоп сессии</button>
 </div>
 
+<!-- ── BREADCRUMB ─────────────────────────────────────── -->
 <div class="breadcrumb" id="breadcrumb">
   <span style="color:var(--text3)">/</span>
   <span style="color:var(--text3)">нет активного стенда</span>
 </div>
 
+<!-- ── FEED ───────────────────────────────────────────── -->
 <div class="scroll-area" id="scrollArea">
   <div class="empty" id="emptyState">
     <div class="empty-icon">📦</div>
@@ -445,6 +473,7 @@
   </div>
 </div>
 
+<!-- ── ACTIONS ────────────────────────────────────────── -->
 <div class="actions">
   <div class="btn-row">
     <button class="btn btn-booth" onclick="startNewBooth()" id="btnBooth">＋ Стенд</button>
@@ -468,6 +497,7 @@
   </div>
 </div>
 
+<!-- ── STATUS BAR ─────────────────────────────────────── -->
 <div class="status-bar">
   <span class="status-dot" id="statusDot"></span>
   <span id="statusText">готов к работе</span>
@@ -477,50 +507,46 @@
 <input type="file" id="fileInput" accept="image/*" capture="environment">
 <input type="file" id="signInput" accept="image/*" capture="environment">
 
-<div class="preview-overlay" id="previewOverlay" style="display:none">
-  <div class="preview-label" id="previewLabel">ФОТО</div>
-  <img id="previewImg" src="" alt="">
-  <div class="preview-actions">
-    <button class="btn-keep"    onclick="keepPhoto()">✓ В базу</button>
-    <button class="btn-discard" onclick="discardPhoto()">✕ Удалить</button>
-  </div>
-</div>
-
+<!-- ── LOADER OVERLAY ─────────────────────────────────── -->
 <div class="overlay" id="loaderOverlay" style="display:none; z-index: 400; background:rgba(0,0,0,0.95); align-items:center; justify-content:center;">
   <div style="color:var(--accent); font-family:var(--font-ui); font-size:24px; font-weight:bold; letter-spacing:1px;">УПАКОВКА АРХИВА...</div>
   <div style="font-size:12px; color:var(--text2); margin-top:10px;" id="loaderSub">Не закрывайте браузер</div>
 </div>
 
+<!-- ── CONFIRM CLEAR ──────────────────────────────────── -->
 <div class="confirm-overlay" id="confirmOverlay" style="display:none">
   <div class="confirm-box">
     <div class="confirm-title">⚠ Сбросить сессию?</div>
     <div class="confirm-text">Лог сессии будет очищен.<br>Файлы в БД (если есть) удалятся!</div>
     <div class="confirm-btns">
       <button class="btn-confirm-yes" onclick="clearAll()">Сбросить</button>
-      <button class="btn-confirm-no"  onclick="document.getElementById('confirmOverlay').style.display='none'">Отмена</button>
+      <button class="btn-confirm-no"  onclick="closeModal('confirmOverlay')">Отмена</button>
     </div>
   </div>
 </div>
 
+<!-- ── CONFIRM STOP ───────────────────────────────────── -->
 <div class="confirm-overlay" id="confirmStopOverlay" style="display:none">
   <div class="confirm-box">
     <div class="confirm-title" style="color:var(--amber)">⏹ Завершить сессию?</div>
     <div class="confirm-text">Таймер стенда остановится.<br>Данные сохранятся в истории.</div>
     <div class="confirm-btns">
       <button class="btn-confirm-yes" style="background:var(--amber);color:#000" onclick="stopSession()">Завершить</button>
-      <button class="btn-confirm-no" onclick="document.getElementById('confirmStopOverlay').style.display='none'">Отмена</button>
+      <button class="btn-confirm-no" onclick="closeModal('confirmStopOverlay')">Отмена</button>
     </div>
   </div>
 </div>
 
+<!-- ── HISTORY ────────────────────────────────────────── -->
 <div class="history-overlay" id="historyOverlay" style="display:none">
   <div class="overlay-header">
     <div class="overlay-title">История</div>
-    <button class="btn-close" onclick="document.getElementById('historyOverlay').style.display='none'">Закрыть</button>
+    <button class="btn-close" onclick="closeModal('historyOverlay')">Закрыть</button>
   </div>
   <div class="history-body" id="historyBody"></div>
 </div>
 
+<!-- ── SETTINGS ───────────────────────────────────────── -->
 <div class="settings-overlay" id="settingsOverlay" style="display:none">
   <div class="overlay-header">
     <div class="overlay-title">Настройки</div>
@@ -552,7 +578,7 @@
         <button class="btn-action btn-action-danger" onclick="confirmClearFromSettings()">🗑 Сброс</button>
       </div>
     </div>
-    <div class="settings-version" style="margin-top:20px;">EXPOCAPTURE v5 · локальные БД архивы</div>
+    <div class="settings-version" style="margin-top:20px;">EXPOCAPTURE v6 · прямая запись без превью</div>
   </div>
   <div class="settings-footer">
     <button class="btn btn-back" onclick="closeSettings()">← Назад</button>
@@ -561,6 +587,28 @@
 </div>
 
 <script>
+// ── MODAL & HISTORY API (ЖЕСТ НАЗАД) ───────────────────
+function openModal(id) {
+  document.getElementById(id).style.display = 'flex';
+  history.pushState({ modal: id }, '');
+}
+
+function closeModal(id) {
+  if (history.state && history.state.modal === id) {
+    history.back(); // Вызовет popstate, который скроет окно
+  } else {
+    document.getElementById(id).style.display = 'none';
+  }
+}
+
+window.addEventListener('popstate', (e) => {
+  const modals = ['settingsOverlay', 'historyOverlay', 'confirmOverlay', 'confirmStopOverlay'];
+  modals.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (e.state && e.state.modal === id) ? 'flex' : 'none';
+  });
+});
+
 // ── INDEXED DB (LOCAL STORAGE FOR FILES) ───────────────
 const dbName = "ExpoDB";
 const storeName = "files";
@@ -574,6 +622,7 @@ function initDB() {
     req.onerror = () => reject(req.error);
   });
 }
+
 function saveFileToDB(filename, blob) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, "readwrite");
@@ -582,6 +631,7 @@ function saveFileToDB(filename, blob) {
     tx.onerror = () => reject(tx.error);
   });
 }
+
 function getFilesFromDB() {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, "readonly");
@@ -592,6 +642,7 @@ function getFilesFromDB() {
     tx.onerror = () => reject(tx.error);
   });
 }
+
 function clearDB() {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, "readwrite");
@@ -614,35 +665,64 @@ let state = {
   zipPart: 1 // Трекинг частей ZIP
 };
 
-let mediaRecorder = null, audioChunks = [], recTimerInterval = null;
-let boothTimerInterval = null, pendingPhoto = null;
+let mediaRecorder = null, audioChunks = [], audioMimeType = 'audio/webm', recTimerInterval = null;
+let boothTimerInterval = null;
 
 // ── SETTINGS ───────────────────────────────────────────
-function getOperatorName() { return localStorage.getItem('expocap_operator') || ''; }
-function openSettings() { document.getElementById('settingsName').value = getOperatorName(); document.getElementById('settingsOverlay').style.display = 'flex'; }
-function closeSettings() { document.getElementById('settingsOverlay').style.display = 'none'; }
+function getOperatorName() { 
+  return localStorage.getItem('expocap_operator') || ''; 
+}
+
+function openSettings() { 
+  document.getElementById('settingsName').value = getOperatorName(); 
+  openModal('settingsOverlay');
+}
+
+function closeSettings() { 
+  closeModal('settingsOverlay');
+}
+
 function saveSettings() {
   const v = document.getElementById('settingsName').value.trim().replace(/[^a-zA-Zа-яА-ЯёЁ0-9_-]/g,'_');
-  localStorage.setItem('expocap_operator', v); updateHeaderUser();
-  showToast(v ? `оператор: ${v}` : 'имя сброшено'); closeSettings();
+  localStorage.setItem('expocap_operator', v); 
+  updateHeaderUser();
+  showToast(v ? `оператор: ${v}` : 'имя сброшено'); 
+  closeSettings();
 }
+
 function updateHeaderUser() {
-  const name = getOperatorName(); document.getElementById('headerUser').innerHTML = name ? `<span>${name}</span>` : '';
+  const name = getOperatorName(); 
+  document.getElementById('headerUser').innerHTML = name ? `<span>${name}</span>` : '';
 }
+
 async function clearSWCache() {
   try {
-    const keys = await caches.keys(); await Promise.all(keys.map(k => caches.delete(k)));
+    const keys = await caches.keys(); 
+    await Promise.all(keys.map(k => caches.delete(k)));
     showToast(`кеш очищен (${keys.length})`);
-  } catch(e) { showToast('ошибка кеша'); }
+  } catch(e) { 
+    showToast('ошибка кеша'); 
+  }
 }
-function confirmClearFromSettings() { closeSettings(); document.getElementById('confirmOverlay').style.display = 'flex'; }
+
+function confirmClearFromSettings() { 
+  closeSettings(); 
+  openModal('confirmOverlay');
+}
 
 // ── PERSISTENCE ────────────────────────────────────────
-function save() { try { localStorage.setItem('expocap_v5', JSON.stringify(state)); } catch(e) {} }
+function save() { 
+  try { localStorage.setItem('expocap_v5', JSON.stringify(state)); } catch(e) {} 
+}
+
 function load() {
   try {
     const r = localStorage.getItem('expocap_v5');
-    if (r) { state = { ...state, ...JSON.parse(r) }; if(!state.zipPart) state.zipPart = 1; return true; }
+    if (r) { 
+      state = { ...state, ...JSON.parse(r) }; 
+      if(!state.zipPart) state.zipPart = 1; 
+      return true; 
+    }
   } catch(e) {}
   return false;
 }
@@ -651,24 +731,35 @@ function load() {
 function tsISO()  { return new Date().toISOString(); }
 function tsFile() { return new Date().toISOString().replace(/[:.]/g,'-').slice(0,19); }
 function pad(n)   { return String(n).padStart(3,'0'); }
+
 function showToast(msg, dur=1800) {
-  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  const t = document.getElementById('toast'); 
+  t.textContent = msg; 
+  t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), dur);
 }
+
 function setStatus(msg, mode='') {
   document.getElementById('statusText').textContent = msg;
-  const dot = document.getElementById('statusDot'); dot.className = 'status-dot';
-  if (mode === 'rec') dot.classList.add('red'); if (mode === 'pause') dot.classList.add('amber');
+  const dot = document.getElementById('statusDot'); 
+  dot.className = 'status-dot';
+  if (mode === 'rec') dot.classList.add('red'); 
+  if (mode === 'pause') dot.classList.add('amber');
 }
+
 function currentBooth()   { return state.booths[state.currentBoothIdx] || null; }
 function currentProduct() { const b=currentBooth(); return b?(b.products[state.currentProductIdx]||null):null; }
 
+// ── UI UPDATES ─────────────────────────────────────────
 async function updateUI() {
   const b = currentBooth(), p = currentProduct();
   
   // Проверка файлов в БД
   let dbFilesCount = 0;
-  try { const files = await getFilesFromDB(); dbFilesCount = files.length; } catch(e) {}
+  try { 
+    const files = await getFilesFromDB(); 
+    dbFilesCount = files.length; 
+  } catch(e) {}
   
   document.getElementById('headerDbFiles').textContent = dbFilesCount;
   document.getElementById('warningBanner').style.display = dbFilesCount >= 40 ? 'block' : 'none';
@@ -688,7 +779,11 @@ async function updateUI() {
   const active = !!b && !state.sessionStopped && !state.sessionPaused;
   const hasSession = !!b && !state.sessionStopped;
 
-  const set=(id,on)=>{ const el=document.getElementById(id); el.disabled=!on; el.style.opacity=on?'1':'0.3'; };
+  const set=(id,on)=>{ 
+    const el=document.getElementById(id); 
+    el.disabled=!on; 
+    el.style.opacity=on?'1':'0.3'; 
+  };
   
   // Кнопка нового стенда (меняется на СЛЕД. СТЕНД)
   const btnBooth = document.getElementById('btnBooth');
@@ -712,14 +807,24 @@ async function updateUI() {
     btnZip.style.display = 'none';
   }
 
-  set('btnProduct', active); set('btnSign', active); set('btnPhoto', active && !!p); set('btnAudio', active && !!p);
+  set('btnProduct', active); 
+  set('btnSign', active); 
+  set('btnPhoto', active && !!p); 
+  set('btnAudio', active && !!p);
 
   document.getElementById('sessionControls').style.display = hasSession ? 'flex' : 'none';
   const btnPause = document.getElementById('btnPause');
-  if (state.sessionPaused) { btnPause.textContent = '▶ Продолжить'; btnPause.classList.add('paused'); } 
-  else { btnPause.textContent = '⏸ Пауза'; btnPause.classList.remove('paused'); }
+  
+  if (state.sessionPaused) { 
+    btnPause.textContent = '▶ Продолжить'; 
+    btnPause.classList.add('paused'); 
+  } else { 
+    btnPause.textContent = '⏸ Пауза'; 
+    btnPause.classList.remove('paused'); 
+  }
 }
 
+// ── TIMERS ─────────────────────────────────────────────
 function getBoothElapsedMs() {
   if (!state.boothStartTime) return 0;
   if (state.sessionStopped) return state.pausedElapsed;
@@ -730,7 +835,10 @@ function getBoothElapsedMs() {
 function startBoothTimer() {
   clearInterval(boothTimerInterval);
   boothTimerInterval = setInterval(() => {
-    if (!state.boothStartTime || state.sessionStopped) { clearInterval(boothTimerInterval); return; }
+    if (!state.boothStartTime || state.sessionStopped) { 
+      clearInterval(boothTimerInterval); 
+      return; 
+    }
     const s = Math.floor(getBoothElapsedMs() / 1000);
     document.getElementById('statTimer').textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
   }, 500);
@@ -740,51 +848,101 @@ function togglePause() {
   if (!currentBooth() || state.sessionStopped) return;
   if (!state.sessionPaused) {
     state.pausedElapsed += Date.now() - new Date(state.pauseStartedAt || state.boothStartTime).getTime();
-    state.pauseStartedAt = null; state.sessionPaused = true;
-    setStatus('сессия на паузе', 'pause'); showToast('⏸ пауза');
+    state.pauseStartedAt = null; 
+    state.sessionPaused = true;
+    setStatus('сессия на паузе', 'pause'); 
+    showToast('⏸ пауза');
   } else {
-    state.pauseStartedAt = tsISO(); state.sessionPaused = false;
-    setStatus(`стенд: ${currentBooth().name}`); showToast('▶ продолжение'); startBoothTimer();
+    state.pauseStartedAt = tsISO(); 
+    state.sessionPaused = false;
+    setStatus(`стенд: ${currentBooth().name}`); 
+    showToast('▶ продолжение'); 
+    startBoothTimer();
   }
-  save(); updateUI();
+  save(); 
+  updateUI();
 }
 
-function confirmStopSession() { if (!currentBooth() || state.sessionStopped) return; document.getElementById('confirmStopOverlay').style.display = 'flex'; }
+function confirmStopSession() { 
+  if (!currentBooth() || state.sessionStopped) return; 
+  openModal('confirmStopOverlay');
+}
+
 function stopSession() {
-  document.getElementById('confirmStopOverlay').style.display = 'none';
-  if (!state.sessionPaused) state.pausedElapsed += Date.now() - new Date(state.pauseStartedAt || state.boothStartTime).getTime();
-  state.sessionStopped = true; state.sessionPaused = false; clearInterval(boothTimerInterval);
+  closeModal('confirmStopOverlay');
+  if (!state.sessionPaused) {
+    state.pausedElapsed += Date.now() - new Date(state.pauseStartedAt || state.boothStartTime).getTime();
+  }
+  state.sessionStopped = true; 
+  state.sessionPaused = false; 
+  clearInterval(boothTimerInterval);
+  
   const s = Math.floor(state.pausedElapsed / 1000);
   document.getElementById('statTimer').textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-  setStatus('сессия завершена'); showToast('⏹ сессия завершена'); save(); updateUI();
+  
+  setStatus('сессия завершена'); 
+  showToast('⏹ сессия завершена'); 
+  save(); 
+  updateUI();
 }
 
+// ── UI BUILDERS ────────────────────────────────────────
 function addCard(icon, name, meta, tag, cls) {
-  const empty = document.getElementById('emptyState'); if (empty) empty.remove();
-  const area = document.getElementById('scrollArea'); const el = document.createElement('div');
+  const empty = document.getElementById('emptyState'); 
+  if (empty) empty.remove();
+  
+  const area = document.getElementById('scrollArea'); 
+  const el = document.createElement('div');
   el.className = 'item-card';
-  el.innerHTML = `<div class="item-icon">${icon}</div><div class="item-info"><div class="item-name">${name}</div><div class="item-meta">${meta}</div></div><div class="item-tag ${cls}">${tag}</div>`;
-  area.appendChild(el); requestAnimationFrame(() => el.scrollIntoView({behavior:'smooth', block:'end'}));
+  el.innerHTML = `
+    <div class="item-icon">${icon}</div>
+    <div class="item-info">
+      <div class="item-name">${name}</div>
+      <div class="item-meta">${meta}</div>
+    </div>
+    <div class="item-tag ${cls}">${tag}</div>
+  `;
+  area.prepend(el); // Добавляем сверху, так удобнее видеть последние снимки без скролла
 }
 
 function rebuildFeed() {
-  const area = document.getElementById('scrollArea'); area.innerHTML = '';
+  const area = document.getElementById('scrollArea'); 
+  area.innerHTML = '';
+  
   if (!state.booths.length) {
-    area.innerHTML = '<div class="empty" id="emptyState"><div class="empty-icon">📦</div><div>Нажми СТЕНД чтобы начать</div><div class="empty-hint">файлы надежно пишутся<br>во внутреннюю БД браузера</div></div>'; return;
+    area.innerHTML = `
+      <div class="empty" id="emptyState">
+        <div class="empty-icon">📦</div>
+        <div>Нажми СТЕНД чтобы начать</div>
+        <div class="empty-hint">файлы надежно пишутся<br>во внутреннюю БД браузера</div>
+      </div>
+    `; 
+    return;
   }
+  
+  // Чтобы новые элементы были сверху, рендерим в обратном порядке
+  const itemsToRender = [];
+  
   for (const b of state.booths) {
-    addCard('🏢', b.name, b.ts.slice(0,10), 'СТЕНД', 'tag-booth');
-    for (const p of b.products) addCard('📦', p.name, `в ${b.name}`, 'ТОВАР', 'tag-item');
+    itemsToRender.push({ icon: '🏢', name: b.name, meta: b.ts.slice(0,10), tag: 'СТЕНД', cls: 'tag-booth' });
+    for (const p of b.products) {
+      itemsToRender.push({ icon: '📦', name: p.name, meta: `в ${b.name}`, tag: 'ТОВАР', cls: 'tag-item' });
+    }
   }
+  
   for (const entry of state.log) {
-    if (entry.type==='sign')  addCard('🪧', entry.fname, entry.boothName, 'ТАБЛИЧКА', 'tag-sign');
-    if (entry.type==='photo') addCard('📷', entry.fname, `${entry.boothName}/${entry.productName}`, 'ФОТО', 'tag-photo');
-    if (entry.type==='audio') addCard('🎙', entry.fname, `${entry.boothName}/${entry.productName}`, 'АУДИО', 'tag-audio');
+    if (entry.type==='sign')  itemsToRender.push({ icon: '🪧', name: entry.fname, meta: entry.boothName, tag: 'ТАБЛИЧКА', cls: 'tag-sign' });
+    if (entry.type==='photo') itemsToRender.push({ icon: '📷', name: entry.fname, meta: `${entry.boothName}/${entry.productName}`, tag: 'ФОТО', cls: 'tag-photo' });
+    if (entry.type==='audio') itemsToRender.push({ icon: '🎙', name: entry.fname, meta: `${entry.boothName}/${entry.productName}`, tag: 'АУДИО', cls: 'tag-audio' });
   }
+  
+  itemsToRender.forEach(i => addCard(i.icon, i.name, i.meta, i.tag, i.cls));
 }
 
 function buildFilename(parts, ext) {
-  const op = getOperatorName(); const base = parts.join('__'); const ts = tsFile();
+  const op = getOperatorName(); 
+  const base = parts.join('__'); 
+  const ts = tsFile();
   return op ? `${base}__${op}__${ts}.${ext}` : `${base}__${ts}.${ext}`;
 }
 
@@ -799,106 +957,185 @@ async function startNewBooth() {
     }
   } catch(e) {}
 
-  if (state.sessionStopped) { state.sessionStopped = false; state.pausedElapsed = 0; state.pauseStartedAt = null; }
-  state.boothCounter++; state.zipPart = 1;
-  const id=`booth_${pad(state.boothCounter)}`, name=`Стенд_${pad(state.boothCounter)}`;
+  if (state.sessionStopped) { 
+    state.sessionStopped = false; 
+    state.pausedElapsed = 0; 
+    state.pauseStartedAt = null; 
+  }
+  
+  state.boothCounter++; 
+  state.zipPart = 1;
+  const id=`booth_${pad(state.boothCounter)}`;
+  const name=`Стенд_${pad(state.boothCounter)}`;
+  
   state.booths.push({id, name, ts:tsISO(), products:[]});
-  state.currentBoothIdx = state.booths.length - 1; state.currentProductIdx = -1;
-  state.boothStartTime = tsISO(); state.pausedElapsed = 0; state.pauseStartedAt = tsISO(); state.sessionPaused = false;
-  startBoothTimer(); addCard('🏢', name, new Date().toLocaleTimeString(), 'СТЕНД', 'tag-booth');
-  updateUI(); save(); showToast(`${name} открыт`); setStatus(`стенд: ${name}`);
+  state.currentBoothIdx = state.booths.length - 1; 
+  state.currentProductIdx = -1;
+  state.boothStartTime = tsISO(); 
+  state.pausedElapsed = 0; 
+  state.pauseStartedAt = tsISO(); 
+  state.sessionPaused = false;
+  
+  startBoothTimer(); 
+  addCard('🏢', name, new Date().toLocaleTimeString(), 'СТЕНД', 'tag-booth');
+  updateUI(); 
+  save(); 
+  
+  showToast(`${name} открыт`); 
+  setStatus(`стенд: ${name}`);
 }
 
 function newProduct() {
   if (!currentBooth() || state.sessionPaused || state.sessionStopped) return;
   state.productCounter++;
-  const id=`product_${pad(state.productCounter)}`, name=`Товар_${pad(state.productCounter)}`;
+  const id=`product_${pad(state.productCounter)}`;
+  const name=`Товар_${pad(state.productCounter)}`;
+  
   currentBooth().products.push({id, name, ts:tsISO()});
   state.currentProductIdx = currentBooth().products.length - 1;
+  
   addCard('📦', name, `в ${currentBooth().name}`, 'ТОВАР', 'tag-item');
-  updateUI(); save(); showToast(`${name} активен`); setStatus(`товар: ${name}`);
+  updateUI(); 
+  save(); 
+  
+  showToast(`${name} активен`); 
+  setStatus(`товар: ${name}`);
 }
 
-// ── PHOTO & DB SAVE ────────────────────────────────────
-function takeSign() { if (!currentBooth() || state.sessionPaused || state.sessionStopped) return; document.getElementById('signInput').click(); }
-document.getElementById('signInput').addEventListener('change', e => {
-  const file = e.target.files[0]; if (!file) return; state.fileCounter++; const b = currentBooth();
-  const fname = buildFilename([b.id, 'sign', pad(state.fileCounter)], 'jpg');
-  pendingPhoto = {blob:file, fname, type:'sign'};
-  document.getElementById('previewLabel').textContent = '🪧 Табличка стенда';
-  document.getElementById('previewImg').src = URL.createObjectURL(file);
-  document.getElementById('previewOverlay').style.display = 'flex'; e.target.value = '';
-});
+// ── PHOTO & DB SAVE (DIRECT, NO PREVIEW) ───────────────
+function takeSign() { 
+  if (!currentBooth() || state.sessionPaused || state.sessionStopped) return; 
+  document.getElementById('signInput').click(); 
+}
 
-function takePhoto() { if (!currentProduct() || state.sessionPaused || state.sessionStopped) return; document.getElementById('fileInput').click(); }
-document.getElementById('fileInput').addEventListener('change', e => {
-  const file = e.target.files[0]; if (!file) return; const b=currentBooth(), p=currentProduct(); state.fileCounter++;
-  const fname = buildFilename([b.id, p.id, `photo_${pad(state.fileCounter)}`], 'jpg');
-  pendingPhoto = {blob:file, fname, type:'photo'};
-  document.getElementById('previewLabel').textContent = '📷 Фото товара';
-  document.getElementById('previewImg').src = URL.createObjectURL(file);
-  document.getElementById('previewOverlay').style.display = 'flex'; e.target.value = '';
-});
+function takePhoto() { 
+  if (!currentProduct() || state.sessionPaused || state.sessionStopped) return; 
+  document.getElementById('fileInput').click(); 
+}
 
-async function keepPhoto() {
-  if (!pendingPhoto) return;
-  const {blob, fname, type} = pendingPhoto; const b = currentBooth(), p = currentProduct();
+async function processImageInput(file, type) {
+  if (!file) return;
+  const b = currentBooth();
+  const p = currentProduct();
   
-  // Сохраняем в БД вместо прямого скачивания
-  await saveFileToDB(fname, blob);
+  state.fileCounter++; 
   
+  const isSign = (type === 'sign');
+  const idPart = isSign ? 'sign' : p.id;
+  const countPart = isSign ? pad(state.fileCounter) : `photo_${pad(state.fileCounter)}`;
+  const fname = buildFilename([b.id, idPart, countPart], 'jpg');
+  
+  // Прямое сохранение в БД, без показа превью
+  await saveFileToDB(fname, file);
+  
+  // Добавляем в лог
   state.log.push({ ts:tsISO(), type, fname, boothName:b.name, productName:p?.name||null });
-  const ctx = type==='sign' ? b.name : `${b.name}/${p.name}`;
-  if (type==='sign') addCard('🪧', fname, ctx, 'ТАБЛИЧКА', 'tag-sign'); else addCard('📷', fname, ctx, 'ФОТО', 'tag-photo');
-  URL.revokeObjectURL(document.getElementById('previewImg').src);
-  document.getElementById('previewOverlay').style.display = 'none'; pendingPhoto = null;
-  updateUI(); save(); showToast('✓ В базе данных');
+  
+  const ctx = isSign ? b.name : `${b.name}/${p.name}`;
+  if (isSign) {
+    addCard('🪧', fname, ctx, 'ТАБЛИЧКА', 'tag-sign'); 
+  } else {
+    addCard('📷', fname, ctx, 'ФОТО', 'tag-photo');
+  }
+  
+  updateUI(); 
+  save(); 
+  showToast('✓ В базе данных');
 }
 
-function discardPhoto() {
-  URL.revokeObjectURL(document.getElementById('previewImg').src);
-  document.getElementById('previewOverlay').style.display = 'none'; pendingPhoto = null;
-  state.fileCounter = Math.max(0, state.fileCounter - 1); showToast('удалено');
-}
+document.getElementById('signInput').addEventListener('change', async e => {
+  await processImageInput(e.target.files[0], 'sign');
+  e.target.value = '';
+});
+
+document.getElementById('fileInput').addEventListener('change', async e => {
+  await processImageInput(e.target.files[0], 'photo');
+  e.target.value = '';
+});
+
 
 // ── AUDIO ──────────────────────────────────────────────
-async function toggleAudio() { if (mediaRecorder && mediaRecorder.state==='recording') stopAudio(); else startAudio(); }
+async function toggleAudio() { 
+  if (mediaRecorder && mediaRecorder.state==='recording') {
+    stopAudio(); 
+  } else {
+    startAudio();
+  }
+}
+
 async function startAudio() {
   if (!currentProduct() || state.sessionPaused || state.sessionStopped) return;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true}); audioChunks = [];
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true}); 
+    audioChunks = [];
     mediaRecorder = new MediaRecorder(stream);
+    
+    // Получаем системный MIME тип, который выдал браузер (на iOS часто audio/mp4)
+    audioMimeType = mediaRecorder.mimeType || 'audio/webm';
+    
     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    mediaRecorder.onstop = saveAudio; mediaRecorder.start(); const t0 = Date.now();
-    const btn = document.getElementById('btnAudio'); btn.classList.add('recording');
+    mediaRecorder.onstop = saveAudio; 
+    mediaRecorder.start(); 
+    
+    const t0 = Date.now();
+    const btn = document.getElementById('btnAudio'); 
+    btn.classList.add('recording');
     btn.innerHTML = '⏹ Стоп <span class="rec-timer" id="recTimer">0:00</span>';
+    
     recTimerInterval = setInterval(() => {
-      const s = Math.floor((Date.now()-t0)/1000); const el = document.getElementById('recTimer');
+      const s = Math.floor((Date.now()-t0)/1000); 
+      const el = document.getElementById('recTimer');
       if (el) el.textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-    }, 500); setStatus('● запись...', 'rec');
-  } catch(e) { showToast('нет доступа к микрофону'); setStatus('ошибка микрофона'); }
+    }, 500); 
+    
+    setStatus('● запись...', 'rec');
+  } catch(e) { 
+    showToast('нет доступа к микрофону'); 
+    setStatus('ошибка микрофона'); 
+  }
 }
+
 function stopAudio() {
-  if (mediaRecorder) { mediaRecorder.stop(); mediaRecorder.stream.getTracks().forEach(t=>t.stop()); mediaRecorder=null; }
-  clearInterval(recTimerInterval); const btn = document.getElementById('btnAudio');
-  btn.classList.remove('recording'); btn.innerHTML = '🎙 Аудио';
+  if (mediaRecorder) { 
+    mediaRecorder.stop(); 
+    mediaRecorder.stream.getTracks().forEach(t=>t.stop()); 
+    mediaRecorder=null; 
+  }
+  clearInterval(recTimerInterval); 
+  const btn = document.getElementById('btnAudio');
+  btn.classList.remove('recording'); 
+  btn.innerHTML = '🎙 Аудио';
 }
+
 async function saveAudio() {
-  const b=currentBooth(), p=currentProduct(); if (!b||!p) return; state.fileCounter++;
-  const blob = new Blob(audioChunks, {type:'audio/webm'});
-  const fname = buildFilename([b.id, p.id, `audio_${pad(state.fileCounter)}`], 'webm');
+  const b=currentBooth(), p=currentProduct(); 
+  if (!b||!p) return; 
+  
+  state.fileCounter++;
+  
+  // Динамически определяем расширение файла на основе системного энкодера телефона
+  const ext = audioMimeType.includes('mp4') ? 'mp4' : audioMimeType.includes('ogg') ? 'ogg' : 'webm';
+  
+  const blob = new Blob(audioChunks, {type: audioMimeType});
+  const fname = buildFilename([b.id, p.id, `audio_${pad(state.fileCounter)}`], ext);
   
   await saveFileToDB(fname, blob); // В БД
   
   state.log.push({ts:tsISO(), type:'audio', fname, boothName:b.name, productName:p.name});
   addCard('🎙', fname, `${b.name}/${p.name}`, 'АУДИО', 'tag-audio');
-  updateUI(); save(); showToast('✓ Аудио в базе'); setStatus('аудио сохранено');
+  
+  updateUI(); 
+  save(); 
+  showToast('✓ Аудио в базе'); 
+  setStatus('аудио сохранено');
 }
 
 // ── ZIP DOWNLOAD ───────────────────────────────────────
 async function downloadZip(isSwitchingBooth = false) {
   document.getElementById('loaderOverlay').style.display = 'flex';
-  if (!isSwitchingBooth) document.getElementById('loaderSub').textContent = "Не закрывайте браузер";
+  if (!isSwitchingBooth) {
+    document.getElementById('loaderSub').textContent = "Не закрывайте браузер";
+  }
   
   try {
     const files = await getFilesFromDB();
@@ -916,7 +1153,9 @@ async function downloadZip(isSwitchingBooth = false) {
     
     const url = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
-    a.href = url; a.download = zipName; a.click();
+    a.href = url; 
+    a.download = zipName; 
+    a.click();
     
     await clearDB();
     setTimeout(() => URL.revokeObjectURL(url), 3000);
@@ -924,7 +1163,8 @@ async function downloadZip(isSwitchingBooth = false) {
     if (!isSwitchingBooth) {
       state.zipPart = (state.zipPart || 1) + 1;
       showToast(`✓ Память очищена (Часть ${state.zipPart - 1} скачана)`);
-      save(); updateUI();
+      save(); 
+      updateUI();
     }
   } catch (err) {
     alert('Ошибка архивации: ' + err.message);
@@ -935,73 +1175,151 @@ async function downloadZip(isSwitchingBooth = false) {
 
 // ── HISTORY LOGIC ──────────────────────────────────────
 function showHistory() {
-  const body = document.getElementById('historyBody'); const allItems = [];
+  const body = document.getElementById('historyBody'); 
+  const allItems = [];
+  
   for (const b of state.booths) {
     allItems.push({ ts: b.ts, type: 'booth', name: b.name, data: b });
-    for (const p of b.products) allItems.push({ ts: p.ts, type: 'product', name: p.name, boothName: b.name });
+    for (const p of b.products) {
+      allItems.push({ ts: p.ts, type: 'product', name: p.name, boothName: b.name });
+    }
   }
-  for (const e of state.log) allItems.push({ ts: e.ts, type: e.type, name: e.fname, boothName: e.boothName, productName: e.productName });
-  if (!allItems.length) { body.innerHTML = '<div class="history-empty">история пуста</div>'; document.getElementById('historyOverlay').style.display = 'flex'; return; }
+  
+  for (const e of state.log) {
+    allItems.push({ ts: e.ts, type: e.type, name: e.fname, boothName: e.boothName, productName: e.productName });
+  }
+  
+  if (!allItems.length) { 
+    body.innerHTML = '<div class="history-empty">история пуста</div>'; 
+    openModal('historyOverlay');
+    return; 
+  }
+  
   allItems.sort((a, b) => a.ts.localeCompare(b.ts));
   const days = {};
+  
   for (const item of allItems) {
-    const d = new Date(item.ts); const dayKey = d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+    const d = new Date(item.ts); 
+    const dayKey = d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
     const hourKey = `${String(d.getHours()).padStart(2,'0')}:00`;
+    
     if (!days[dayKey]) days[dayKey] = { hours: {}, stats: { booths: 0, products: 0, photos: 0, audios: 0 } };
     if (!days[dayKey].hours[hourKey]) days[dayKey].hours[hourKey] = [];
+    
     days[dayKey].hours[hourKey].push(item);
-    if (item.type === 'booth') days[dayKey].stats.booths++; if (item.type === 'product') days[dayKey].stats.products++;
-    if (item.type === 'photo' || item.type === 'sign') days[dayKey].stats.photos++; if (item.type === 'audio') days[dayKey].stats.audios++;
+    
+    if (item.type === 'booth') days[dayKey].stats.booths++; 
+    if (item.type === 'product') days[dayKey].stats.products++;
+    if (item.type === 'photo' || item.type === 'sign') days[dayKey].stats.photos++; 
+    if (item.type === 'audio') days[dayKey].stats.audios++;
   }
+  
   let html = '';
   for (const [dayLabel, dayData] of Object.entries(days)) {
     const s = dayData.stats;
-    html += `<div class="history-day"><div class="history-day-header"><div class="history-day-date">${dayLabel}</div></div><div class="history-day-stats"><span>🏢 <span class="hds-val">${s.booths}</span></span><span>📦 <span class="hds-val">${s.products}</span></span><span>📷 <span class="hds-val">${s.photos}</span></span><span>🎙 <span class="hds-val">${s.audios}</span></span></div>`;
+    html += `
+      <div class="history-day">
+        <div class="history-day-header">
+          <div class="history-day-date">${dayLabel}</div>
+        </div>
+        <div class="history-day-stats">
+          <span>🏢 <span class="hds-val">${s.booths}</span></span>
+          <span>📦 <span class="hds-val">${s.products}</span></span>
+          <span>📷 <span class="hds-val">${s.photos}</span></span>
+          <span>🎙 <span class="hds-val">${s.audios}</span></span>
+        </div>`;
+        
     const sortedHours = Object.keys(dayData.hours).sort();
     for (const hour of sortedHours) {
-      html += `<div class="history-hour"><div class="history-hour-label">${hour}</div>`;
-      for (const item of dayData.hours[hour]) html += buildTreeItem(item);
+      html += `
+        <div class="history-hour">
+          <div class="history-hour-label">${hour}</div>`;
+      for (const item of dayData.hours[hour]) {
+        html += buildTreeItem(item);
+      }
       html += `</div>`;
     }
     html += `</div>`;
   }
-  body.innerHTML = html; document.getElementById('historyOverlay').style.display = 'flex';
+  
+  body.innerHTML = html; 
+  openModal('historyOverlay');
 }
+
 function buildTreeItem(item) {
   const time = new Date(item.ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   switch (item.type) {
-    case 'booth': return `<div class="history-tree-item ht-booth"><span class="ht-icon">🏢</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-booth">СТЕНД</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
-    case 'product': return `<div class="history-tree-item ht-indent1"><span class="ht-icon">📦</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-item">ТОВАР</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
-    case 'sign': return `<div class="history-tree-item ht-indent1"><span class="ht-icon">🪧</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-sign">ТАБЛ</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
-    case 'photo': return `<div class="history-tree-item ht-indent2"><span class="ht-icon">📷</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-photo">ФОТО</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
-    case 'audio': return `<div class="history-tree-item ht-indent2"><span class="ht-icon">🎙</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-audio">АУДИО</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
-    default: return '';
+    case 'booth': 
+      return `<div class="history-tree-item ht-booth"><span class="ht-icon">🏢</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-booth">СТЕНД</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
+    case 'product': 
+      return `<div class="history-tree-item ht-indent1"><span class="ht-icon">📦</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-item">ТОВАР</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
+    case 'sign': 
+      return `<div class="history-tree-item ht-indent1"><span class="ht-icon">🪧</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-sign">ТАБЛ</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
+    case 'photo': 
+      return `<div class="history-tree-item ht-indent2"><span class="ht-icon">📷</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-photo">ФОТО</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
+    case 'audio': 
+      return `<div class="history-tree-item ht-indent2"><span class="ht-icon">🎙</span><span class="ht-name">${item.name}</span><span class="ht-tag tag-audio">АУДИО</span><span style="font-size:8px;color:var(--text3);margin-left:4px">${time}</span></div>`;
+    default: 
+      return '';
   }
 }
 
 // ── CLEAR ──────────────────────────────────────────────
-function confirmClear() { document.getElementById('confirmOverlay').style.display='flex'; }
+function confirmClear() { 
+  openModal('confirmOverlay');
+}
+
 async function clearAll() {
-  state = {booths:[],currentBoothIdx:-1,currentProductIdx:-1,log:[],boothCounter:0,productCounter:0,fileCounter:0,boothStartTime:null,sessionPaused:false,sessionStopped:false,pausedElapsed:0,pauseStartedAt:null,zipPart:1};
+  closeModal('confirmOverlay');
+  
+  state = {
+    booths:[], currentBoothIdx:-1, currentProductIdx:-1, log:[], 
+    boothCounter:0, productCounter:0, fileCounter:0, boothStartTime:null,
+    sessionPaused:false, sessionStopped:false, pausedElapsed:0, pauseStartedAt:null, zipPart:1
+  };
+  
   localStorage.removeItem('expocap_v5');
   await clearDB();
-  clearInterval(boothTimerInterval); document.getElementById('statTimer').textContent = '—';
-  document.getElementById('confirmOverlay').style.display = 'none';
-  rebuildFeed(); updateUI(); showToast('сессия сброшена'); setStatus('готов к работе');
+  clearInterval(boothTimerInterval); 
+  document.getElementById('statTimer').textContent = '—';
+  
+  rebuildFeed(); 
+  updateUI(); 
+  showToast('сессия сброшена'); 
+  setStatus('готов к работе');
 }
 
 // ── INIT ───────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
-  try { await initDB(); } catch(e) { showToast('Ошибка IndexedDB - работа без БД', 3000); }
+  try { 
+    await initDB(); 
+  } catch(e) { 
+    showToast('Ошибка IndexedDB - работа без БД', 3000); 
+  }
+  
   load();
   if (!state.zipPart) state.zipPart = 1;
   rebuildFeed();
-  if (state.boothStartTime && !state.sessionStopped && !state.sessionPaused) startBoothTimer();
-  if (state.sessionStopped && state.pausedElapsed) {
-    const s = Math.floor(state.pausedElapsed / 1000); document.getElementById('statTimer').textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  
+  if (state.boothStartTime && !state.sessionStopped && !state.sessionPaused) {
+    startBoothTimer();
   }
-  updateUI(); updateHeaderUser();
-  if (state.sessionPaused) setStatus('сессия на паузе', 'pause'); else if (state.sessionStopped) setStatus('сессия завершена'); else setStatus('готов к работе');
+  
+  if (state.sessionStopped && state.pausedElapsed) {
+    const s = Math.floor(state.pausedElapsed / 1000); 
+    document.getElementById('statTimer').textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  }
+  
+  updateUI(); 
+  updateHeaderUser();
+  
+  if (state.sessionPaused) {
+    setStatus('сессия на паузе', 'pause'); 
+  } else if (state.sessionStopped) {
+    setStatus('сессия завершена'); 
+  } else {
+    setStatus('готов к работе');
+  }
 });
 </script>
 </body>
