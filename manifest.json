@@ -2,7 +2,8 @@
   "name": "ExpoCapture",
   "short_name": "ExpoCap",
   "description": "Полевой сборщик данных с выставки",
-  "start_url": "./"
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
