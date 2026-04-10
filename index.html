@@ -1140,7 +1140,7 @@ async function saveAudio() {
   setStatus('аудио сохранено');
 }
 
-// ── ZIP DOWNLOAD ───────────────────────────────────────
+  // ── ZIP DOWNLOAD ───────────────────────────────────────
 async function downloadZip(isSwitchingBooth = false) {
   document.getElementById('loaderOverlay').style.display = 'flex';
   if (!isSwitchingBooth) {
@@ -1161,14 +1161,34 @@ async function downloadZip(isSwitchingBooth = false) {
     const boothNameStr = currentBooth() ? currentBooth().name : 'Archive';
     const zipName = `${boothNameStr}_Часть_${state.zipPart || 1}.zip`;
     
-    const url = URL.createObjectURL(zipBlob);
-    const a = document.createElement('a');
-    a.href = url; 
-    a.download = zipName; 
-    a.click();
+    // ── НОВЫЙ БЛОК СОХРАНЕНИЯ (Web Share API для iOS/Android) ──
+    const fileForShare = new File([zipBlob], zipName, { type: "application/zip" });
     
+    // Проверяем, поддерживает ли телефон нативное окно "Поделиться" с файлами
+    if (navigator.canShare && navigator.canShare({ files: [fileForShare] })) {
+      try {
+        await navigator.share({
+          files: [fileForShare],
+          title: zipName
+        });
+        // Если юзер отменит окно, код сюда не дойдет (вылетит в catch ниже)
+      } catch (err) {
+        console.log("Сохранение отменено пользователем:", err);
+        return; // ВАЖНО: Прерываем функцию. БД не очистится, файлы не удалятся!
+      }
+    } else {
+      // Запасной старый метод (для ПК и старых браузеров)
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url; 
+      a.download = zipName; 
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }
+    // ────────────────────────────────────────────────────────────
+
+    // Очищаем базу данных ТОЛЬКО если сохранение не было отменено
     await clearDB();
-    setTimeout(() => URL.revokeObjectURL(url), 3000);
     
     if (!isSwitchingBooth) {
       state.zipPart = (state.zipPart || 1) + 1;
