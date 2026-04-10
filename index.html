@@ -2,14 +2,13 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#080808">
 <link rel="manifest" href="manifest.json">
 <title>ExpoCapture</title>
 
-<!-- Локальная библиотека для ZIP -->
 <script src="./jszip.min.js"></script>
 
 <style>
@@ -38,8 +37,6 @@
     --text3: #444;
     --radius: 6px;
     --radius-sm: 4px;
-    
-    /* Системные шрифты для офлайна */
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
@@ -48,17 +45,23 @@
     box-sizing: border-box; 
     margin: 0; 
     padding: 0; 
-    -webkit-tap-highlight-color: transparent; 
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
-  body {
+  html, body {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     background: var(--bg);
     color: var(--text);
     font-family: var(--font-mono);
-    height: 100dvh;
+  }
+
+  body {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
   }
 
   /* ── HEADER ── */
@@ -70,6 +73,7 @@
     justify-content: space-between;
     flex-shrink: 0;
     background: var(--s0);
+    z-index: 10;
   }
   .header-left { display: flex; align-items: baseline; gap: 10px; }
   .logo {
@@ -142,6 +146,13 @@
   .stat-val.c-accent { color: var(--accent); }
   .stat-val.c-orange { color: var(--orange); }
   .stat-val.c-blue   { color: var(--blue); font-size: 17px; }
+
+  /* Анимация мигания таймера при паузе */
+  @keyframes blinkRedTimer {
+    0%, 100% { color: var(--text); opacity: 1; }
+    50% { color: var(--red); opacity: 0.4; }
+  }
+  .paused-timer { animation: blinkRedTimer 1s infinite !important; }
 
   /* ── WARNING BANNER ── */
   .warning-banner { 
@@ -254,7 +265,7 @@
     font-family: var(--font-ui); font-weight: 700; cursor: pointer;
     transition: transform 0.05s, filter 0.05s;
     height: 56px; gap: 4px; padding: 4px;
-    min-width: 0; /* Important for flex child squishing */
+    min-width: 0;
   }
   .btn-action-panel:active { transform: scale(0.95); filter: brightness(0.85); }
   .btn-action-panel:disabled { opacity: 0.3; cursor: default; transform: none; filter: none; }
@@ -278,8 +289,10 @@
     cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center;
   }
   .btn-zip:active { background: #00162b; }
+  .btn-zip:disabled { opacity: 0.3; border-color: var(--text3); color: var(--text3); cursor: default; }
   
   .b-audio.recording { background: #200010; color: var(--red); border: 1px solid var(--red); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.6; } }
   .rec-timer { position: absolute; right: 10px; font-size: 10px; color: var(--red); font-weight: 700; font-family: var(--font-mono); }
 
   /* ── SESSION CONTROLS ── */
@@ -402,8 +415,46 @@
   
   .btn-set { height: 40px; padding: 0 16px; border-radius: var(--radius-sm); font-family: var(--font-ui); font-weight: 700; font-size: 13px; cursor: pointer; text-transform: uppercase; }
   .btn-set-warning { background: transparent; color: var(--amber); border: 1px solid #4a2c00; }
-  .btn-set-danger { background: transparent; color: var(--red); border: 1px solid #4a0015; }
+  .btn-set-danger { background: transparent; color: var(--red); border: 1px solid #4a0015; font-size: 10px; }
   .btn-set-normal { background: var(--s2); color: var(--text); border: 1px solid var(--border2); width: 100%; margin-bottom: 8px;}
+
+  /* Крупная кнопка истории */
+  .btn-history-big {
+    width: 100%;
+    height: 56px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-ui);
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .btn-history-big:active { filter: brightness(0.85); }
+
+  /* Маленькая кнопка сброса */
+  .btn-reset-small {
+    display: block;
+    margin: 20px auto 0;
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    padding: 8px 16px;
+    opacity: 0.6;
+  }
+  .btn-reset-small:active { color: var(--red); opacity: 1; }
   
   .settings-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0; background: var(--s0); }
   .settings-footer .btn-set { flex: 1; height: 46px; font-size: 14px; display:flex; align-items:center; justify-content:center;}
@@ -413,7 +464,7 @@
 </head>
 <body>
 
-<!-- ── HEADER ─────────────────────────────────────────── -->
+<!-- ── HEADER ── -->
 <div class="header">
   <div class="header-left">
     <div class="logo">ExpoCAP</div>
@@ -425,7 +476,7 @@
   </div>
 </div>
 
-<!-- ── STATS ──────────────────────────────────────────── -->
+<!-- ── STATS ── -->
 <div class="stats-bar">
   <div class="stat"><span class="stat-val c-accent" id="statBooths">0</span>стендов</div>
   <div class="stat"><span class="stat-val c-orange" id="statProducts">0</span>товаров</div>
@@ -433,24 +484,24 @@
   <div class="stat"><span class="stat-val c-blue" id="statTimer">—</span>стенд</div>
 </div>
 
-<!-- ── WARNING BANNER ─────────────────────────────────── -->
+<!-- ── WARNING BANNER ── -->
 <div class="warning-banner" id="warningBanner">
   ⚠ НАКОПИЛОСЬ МНОГО ФАЙЛОВ. СКАЧАЙТЕ ZIP АРХИВ!
 </div>
 
-<!-- ── SESSION CONTROLS ────────────────────────────────── -->
+<!-- ── SESSION CONTROLS ── -->
 <div class="session-controls" id="sessionControls" style="display:none">
   <button class="sc-btn sc-pause" onclick="togglePause()" id="btnPause">⏸ Пауза</button>
   <button class="sc-btn sc-stop" onclick="confirmStopSession()" id="btnStop">⏹ Стоп сессии</button>
 </div>
 
-<!-- ── BREADCRUMB ─────────────────────────────────────── -->
+<!-- ── BREADCRUMB ── -->
 <div class="breadcrumb" id="breadcrumb">
   <span style="color:var(--text3)">/</span>
   <span style="color:var(--text3)">нет активного стенда</span>
 </div>
 
-<!-- ── FEED ───────────────────────────────────────────── -->
+<!-- ── FEED ── -->
 <div class="scroll-area" id="scrollArea">
   <div class="empty" id="emptyState">
     <div class="empty-icon">📦</div>
@@ -459,9 +510,8 @@
   </div>
 </div>
 
-<!-- ── ACTIONS (GRID) ─────────────────────────────────── -->
+<!-- ── ACTIONS (GRID) ── -->
 <div class="actions">
-  <!-- РЯД 1: Уровень СТЕНДА -->
   <div class="action-grid-row">
     <button class="btn-action-panel action-main-btn b-booth" onclick="startNewBooth()" id="btnBooth">
       <span class="b-icon">🏢</span><span class="b-text" id="btnBoothText">Стенд</span>
@@ -476,7 +526,6 @@
     </div>
   </div>
   
-  <!-- РЯД 2: Уровень ТОВАРА -->
   <div class="action-grid-row">
     <button class="btn-action-panel action-main-btn b-product" onclick="newProduct()" id="btnProduct" disabled>
       <span class="b-icon">📦</span><span class="b-text">+ Товар</span>
@@ -494,12 +543,13 @@
     </div>
   </div>
 
-  <button class="btn-zip" onclick="downloadZip(false)" id="btnZip" style="display:none;">
+  <!-- ZIP всегда видна -->
+  <button class="btn-zip" onclick="downloadZip(false)" id="btnZip" disabled>
     📦 СКАЧАТЬ ZIP (+0 файлов)
   </button>
 </div>
 
-<!-- ── STATUS BAR ─────────────────────────────────────── -->
+<!-- ── STATUS BAR ── -->
 <div class="status-bar">
   <span class="status-dot" id="statusDot"></span>
   <span id="statusText">готов к работе</span>
@@ -510,13 +560,13 @@
 <input type="file" id="signInput" accept="image/*" capture="environment">
 <input type="file" id="cardInput" accept="image/*" capture="environment">
 
-<!-- ── LOADER OVERLAY ─────────────────────────────────── -->
+<!-- ── LOADER OVERLAY ── -->
 <div class="overlay" id="loaderOverlay" style="display:none; z-index: 400; background:rgba(0,0,0,0.95); align-items:center; justify-content:center;">
   <div style="color:var(--accent); font-family:var(--font-ui); font-size:24px; font-weight:bold; letter-spacing:1px;">УПАКОВКА АРХИВА...</div>
   <div style="font-size:12px; color:var(--text2); margin-top:10px;" id="loaderSub">Не закрывайте браузер</div>
 </div>
 
-<!-- ── CONFIRM CLEAR ──────────────────────────────────── -->
+<!-- ── CONFIRM CLEAR ── -->
 <div class="confirm-overlay" id="confirmOverlay" style="display:none">
   <div class="confirm-box">
     <div class="confirm-title">⚠ Сбросить сессию?</div>
@@ -528,7 +578,7 @@
   </div>
 </div>
 
-<!-- ── CONFIRM STOP ───────────────────────────────────── -->
+<!-- ── CONFIRM STOP ── -->
 <div class="confirm-overlay" id="confirmStopOverlay" style="display:none">
   <div class="confirm-box">
     <div class="confirm-title" style="color:var(--amber)">⏹ Завершить сессию?</div>
@@ -540,7 +590,7 @@
   </div>
 </div>
 
-<!-- ── CONFIRM SAVE ERROR ──────────────────────────────── -->
+<!-- ── CONFIRM SAVE ERROR ── -->
 <div class="confirm-overlay" id="confirmSaveErrorOverlay" style="display:none">
   <div class="confirm-box">
     <div class="confirm-title" style="color:var(--orange)">⚠ Архив не сохранен</div>
@@ -553,7 +603,7 @@
   </div>
 </div>
 
-<!-- ── NOTE OVERLAY ───────────────────────────────────── -->
+<!-- ── NOTE OVERLAY ── -->
 <div class="overlay" id="noteOverlay" style="display:none; z-index: 500;">
   <div class="overlay-header">
     <div class="overlay-title" style="color:var(--text)">📝 Заметка</div>
@@ -565,7 +615,7 @@
   </div>
 </div>
 
-<!-- ── HISTORY ────────────────────────────────────────── -->
+<!-- ── HISTORY ── -->
 <div class="history-overlay" id="historyOverlay" style="display:none">
   <div class="overlay-header">
     <div class="overlay-title">История</div>
@@ -577,7 +627,7 @@
   <div class="history-body" id="historyBody"></div>
 </div>
 
-<!-- ── SETTINGS ───────────────────────────────────────── -->
+<!-- ── SETTINGS ── -->
 <div class="settings-overlay" id="settingsOverlay" style="display:none">
   <div class="overlay-header">
     <div class="overlay-title">Настройки</div>
@@ -595,8 +645,8 @@
     <div class="settings-section">
       <div class="settings-section-title">Управление сессией</div>
       <div class="settings-row">
-        <button class="btn-set btn-set-normal" onclick="closeSettings(); showHistory();">📋 Открыть историю сессии</button>
-        <button class="btn-set btn-set-danger" style="width:100%;" onclick="closeSettings(); confirmClear();">🗑 Сбросить текущую сессию</button>
+        <!-- Крупная красивая кнопка истории -->
+        <button class="btn-history-big" onclick="openHistoryFromSettings()">📋 Открыть историю сессии →</button>
       </div>
     </div>
 
@@ -610,9 +660,12 @@
         <button class="btn-set btn-set-warning" onclick="clearSWCache()">🗄 Очистить</button>
       </div>
     </div>
+
+    <!-- Маленькая кнопка сброса, визуально отделена -->
+    <button class="btn-reset-small" onclick="confirmResetFromSettings()">🗑 сбросить текущую сессию</button>
     
     <div class="settings-version" style="margin-top:20px; text-align:center; color:var(--text3); font-size:9px;">
-      EXPOCAPTURE v6.2 · grid-ui, text notes, web-share
+      EXPOCAPTURE v6.3 · grid-ui, text notes, web-share
     </div>
   </div>
   <div class="settings-footer">
@@ -622,7 +675,7 @@
 </div>
 
 <script>
-// ── РЕГИСТРАЦИЯ SERVICE WORKER (ОФЛАЙН РЕЖИМ) ──────────
+// ── РЕГИСТРАЦИЯ SERVICE WORKER ──
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
@@ -631,17 +684,18 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// ── MODAL & HISTORY API (ЖЕСТ НАЗАД) ───────────────────
+// ── MODAL & HISTORY API ──
 function openModal(id) {
   document.getElementById(id).style.display = 'flex';
   history.pushState({ modal: id }, '');
 }
 
 function closeModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = 'none';
   if (history.state && history.state.modal === id) {
-    history.back(); // Вызовет popstate, который скроет окно
-  } else {
-    document.getElementById(id).style.display = 'none';
+    history.back();
   }
 }
 
@@ -649,11 +703,33 @@ window.addEventListener('popstate', (e) => {
   const modals = ['settingsOverlay', 'historyOverlay', 'confirmOverlay', 'confirmStopOverlay', 'confirmSaveErrorOverlay', 'noteOverlay'];
   modals.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.style.display = (e.state && e.state.modal === id) ? 'flex' : 'none';
+    if (el && !(e.state && e.state.modal === id)) {
+      el.style.display = 'none';
+    }
   });
 });
 
-// ── INDEXED DB (LOCAL STORAGE FOR FILES) ───────────────
+// Открыть историю из настроек — сначала закрываем настройки, потом с задержкой открываем историю
+function openHistoryFromSettings() {
+  const settingsEl = document.getElementById('settingsOverlay');
+  settingsEl.style.display = 'none';
+  if (history.state && history.state.modal === 'settingsOverlay') {
+    history.back();
+  }
+  setTimeout(() => { showHistory(); }, 100);
+}
+
+// Сброс из настроек — закрываем настройки, потом открываем confirm
+function confirmResetFromSettings() {
+  const settingsEl = document.getElementById('settingsOverlay');
+  settingsEl.style.display = 'none';
+  if (history.state && history.state.modal === 'settingsOverlay') {
+    history.back();
+  }
+  setTimeout(() => { confirmClear(); }, 100);
+}
+
+// ── INDEXED DB ──
 const dbName = "ExpoDB";
 const storeName = "files";
 let db;
@@ -696,7 +772,7 @@ function clearDB() {
   });
 }
 
-// ── STATE ──────────────────────────────────────────────
+// ── STATE ──
 let state = {
   booths: [], currentBoothIdx: -1, currentProductIdx: -1,
   log: [],
@@ -712,7 +788,7 @@ let state = {
 let mediaRecorder = null, audioChunks = [], audioMimeType = 'audio/webm', recTimerInterval = null;
 let boothTimerInterval = null;
 
-// ── SETTINGS ───────────────────────────────────────────
+// ── SETTINGS ──
 function getOperatorName() { return localStorage.getItem('expocap_operator') || ''; }
 function openSettings() { document.getElementById('settingsName').value = getOperatorName(); openModal('settingsOverlay'); }
 function closeSettings() { closeModal('settingsOverlay'); }
@@ -738,9 +814,7 @@ async function clearSWCache() {
   } catch(e) { showToast('ошибка кеша'); }
 }
 
-function confirmClearFromSettings() { closeSettings(); openModal('confirmOverlay'); }
-
-// ── PERSISTENCE ────────────────────────────────────────
+// ── PERSISTENCE ──
 function save() { try { localStorage.setItem('expocap_v5', JSON.stringify(state)); } catch(e) {} }
 
 function load() {
@@ -755,7 +829,7 @@ function load() {
   return false;
 }
 
-// ── HELPERS ────────────────────────────────────────────
+// ── HELPERS ──
 function tsISO()  { return new Date().toISOString(); }
 function tsFile() { return new Date().toISOString().replace(/[:.]/g,'-').slice(0,19); }
 function pad(n)   { return String(n).padStart(3,'0'); }
@@ -777,7 +851,7 @@ function setStatus(msg, mode='') {
 function currentBooth()   { return state.booths[state.currentBoothIdx] || null; }
 function currentProduct() { const b=currentBooth(); return b?(b.products[state.currentProductIdx]||null):null; }
 
-// ── UI UPDATES ─────────────────────────────────────────
+// ── UI UPDATES ──
 async function updateUI() {
   const b = currentBooth(), p = currentProduct();
   
@@ -802,10 +876,7 @@ async function updateUI() {
   const active = !!b && !state.sessionStopped && !state.sessionPaused;
   const hasSession = !!b && !state.sessionStopped;
 
-  const set=(id,on)=>{ 
-    const el=document.getElementById(id); 
-    el.disabled=!on; 
-  };
+  const set=(id,on)=>{ document.getElementById(id).disabled=!on; };
   
   const btnBooth = document.getElementById('btnBooth');
   const btnBoothText = document.getElementById('btnBoothText');
@@ -820,15 +891,10 @@ async function updateUI() {
     btnBooth.disabled = false;
   }
 
+  // ZIP всегда видна, активна/неактивна
   const btnZip = document.getElementById('btnZip');
-  if (b && !state.sessionStopped) {
-    btnZip.style.display = 'flex';
-    btnZip.disabled = dbFilesCount === 0;
-    btnZip.innerHTML = `📦 СКАЧАТЬ ZIP (+${dbFilesCount} файлов)`;
-    btnZip.style.opacity = dbFilesCount === 0 ? '0.3' : '1';
-  } else {
-    btnZip.style.display = 'none';
-  }
+  btnZip.disabled = dbFilesCount === 0;
+  btnZip.innerHTML = `📦 СКАЧАТЬ ZIP (+${dbFilesCount} файлов)`;
 
   set('btnProduct', active); 
   set('btnSign', active); 
@@ -845,13 +911,22 @@ async function updateUI() {
   } else { 
     btnPause.textContent = '⏸ Пауза'; btnPause.classList.remove('paused'); 
   }
+
+  // Мигание таймера при паузе
+  const timerEl = document.getElementById('statTimer');
+  if (state.sessionPaused) {
+    timerEl.classList.add('paused-timer');
+  } else {
+    timerEl.classList.remove('paused-timer');
+  }
 }
 
-// ── TIMERS ─────────────────────────────────────────────
+// ── TIMERS ──
 function getBoothElapsedMs() {
   if (!state.boothStartTime) return 0;
   if (state.sessionStopped) return state.pausedElapsed;
   if (state.sessionPaused && state.pauseStartedAt) return state.pausedElapsed;
+  if (state.sessionPaused) return state.pausedElapsed;
   return state.pausedElapsed + (Date.now() - new Date(state.pauseStartedAt || state.boothStartTime).getTime());
 }
 
@@ -890,12 +965,13 @@ function stopSession() {
   
   const s = Math.floor(state.pausedElapsed / 1000);
   document.getElementById('statTimer').textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  document.getElementById('statTimer').classList.remove('paused-timer');
   
   setStatus('сессия завершена'); showToast('⏹ сессия завершена'); 
   save(); updateUI();
 }
 
-// ── UI BUILDERS ────────────────────────────────────────
+// ── UI BUILDERS ──
 function addCard(icon, name, meta, tag, cls) {
   const empty = document.getElementById('emptyState'); 
   if (empty) empty.remove();
@@ -956,7 +1032,7 @@ function buildFilename(parts, ext) {
   return op ? `${base}__${op}__${ts}.${ext}` : `${base}__${ts}.${ext}`;
 }
 
-// ── BOOTH LOGIC (AUTO ZIP) ─────────────────────────────
+// ── BOOTH LOGIC ──
 async function startNewBooth() {
   try {
     const files = await getFilesFromDB();
@@ -1013,7 +1089,7 @@ function newProduct() {
   showToast(`${name} активен`); setStatus(`товар: ${name}`);
 }
 
-// ── CAPTURE & DB SAVE ──────────────────────────────────
+// ── CAPTURE & DB SAVE ──
 function takeSign() { if (!currentBooth() || state.sessionPaused || state.sessionStopped) return; document.getElementById('signInput').click(); }
 function takeCard() { if (!currentBooth() || state.sessionPaused || state.sessionStopped) return; document.getElementById('cardInput').click(); }
 function takePhoto() { if (!currentProduct() || state.sessionPaused || state.sessionStopped) return; document.getElementById('fileInput').click(); }
@@ -1046,7 +1122,7 @@ document.getElementById('signInput').addEventListener('change', async e => { awa
 document.getElementById('cardInput').addEventListener('change', async e => { await processImageInput(e.target.files[0], 'card'); e.target.value = ''; });
 document.getElementById('fileInput').addEventListener('change', async e => { await processImageInput(e.target.files[0], 'photo'); e.target.value = ''; });
 
-// ── AUDIO ──────────────────────────────────────────────
+// ── AUDIO ──
 async function toggleAudio() { 
   if (mediaRecorder && mediaRecorder.state==='recording') stopAudio(); else startAudio();
 }
@@ -1095,7 +1171,7 @@ async function saveAudio() {
   updateUI(); save(); showToast('✓ Аудио в базе'); setStatus('аудио сохранено');
 }
 
-// ── NOTES (TEXT) ───────────────────────────────────────
+// ── NOTES ──
 function openNote() {
   if (!currentProduct() || state.sessionPaused || state.sessionStopped) return;
   document.getElementById('noteText').value = '';
@@ -1123,8 +1199,7 @@ async function saveNote() {
   updateUI(); save(); showToast('✓ Заметка сохранена');
 }
 
-
-// ── ZIP DOWNLOAD (Web Share API) ───────────────────────
+// ── ZIP DOWNLOAD ──
 async function downloadZip(isSwitchingBooth = false) {
   document.getElementById('loaderOverlay').style.display = 'flex';
   if (!isSwitchingBooth) document.getElementById('loaderSub').textContent = "Не закрывайте браузер";
@@ -1172,7 +1247,7 @@ async function downloadZip(isSwitchingBooth = false) {
   }
 }
 
-// ── HISTORY LOGIC ──────────────────────────────────────
+// ── HISTORY LOGIC ──
 function showHistory() {
   const body = document.getElementById('historyBody'); 
   const allItems = [];
@@ -1259,7 +1334,7 @@ function exportHistoryJSON() {
   showToast('JSON скачан');
 }
 
-// ── CLEAR ──────────────────────────────────────────────
+// ── CLEAR ──
 function confirmClear() { openModal('confirmOverlay'); }
 
 async function clearAll() {
@@ -1267,11 +1342,13 @@ async function clearAll() {
   state = { booths:[], currentBoothIdx:-1, currentProductIdx:-1, log:[], boothCounter:0, productCounter:0, fileCounter:0, boothStartTime:null, sessionPaused:false, sessionStopped:false, pausedElapsed:0, pauseStartedAt:null, zipPart:1 };
   localStorage.removeItem('expocap_v5');
   await clearDB();
-  clearInterval(boothTimerInterval); document.getElementById('statTimer').textContent = '—';
+  clearInterval(boothTimerInterval); 
+  document.getElementById('statTimer').textContent = '—';
+  document.getElementById('statTimer').classList.remove('paused-timer');
   rebuildFeed(); updateUI(); showToast('сессия сброшена'); setStatus('готов к работе');
 }
 
-// ── INIT ───────────────────────────────────────────────
+// ── INIT ──
 window.addEventListener('DOMContentLoaded', async () => {
   try { await initDB(); } catch(e) { showToast('Ошибка IndexedDB', 3000); }
   
@@ -1289,6 +1366,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (state.sessionPaused) setStatus('сессия на паузе', 'pause'); 
   else if (state.sessionStopped) setStatus('сессия завершена'); 
   else setStatus('готов к работе');
+
+  // Блокировка зума при двойном тапе
+  document.ondblclick = (e) => e.preventDefault();
 });
 </script>
 </body>
