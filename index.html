@@ -9,7 +9,6 @@
 <link rel="manifest" href="manifest.json">
 <title>ExpoCapture</title>
 
-<!-- Локальная библиотека для ZIP -->
 <script src="./jszip.min.js"></script>
 
 <style>
@@ -427,7 +426,6 @@
 </head>
 <body>
 
-<!-- ── HEADER ─────────────────────────────────────────── -->
 <div class="header">
   <div class="header-left">
     <div class="logo">ExpoCAP</div>
@@ -439,7 +437,6 @@
   </div>
 </div>
 
-<!-- ── STATS ──────────────────────────────────────────── -->
 <div class="stats-bar">
   <div class="stat"><span class="stat-val c-accent" id="statBooths">0</span>стендов</div>
   <div class="stat"><span class="stat-val c-orange" id="statProducts">0</span>товаров</div>
@@ -447,24 +444,20 @@
   <div class="stat"><span class="stat-val c-blue" id="statTimer">—</span>стенд</div>
 </div>
 
-<!-- ── WARNING BANNER ─────────────────────────────────── -->
 <div class="warning-banner" id="warningBanner">
   ⚠ НАКОПИЛОСЬ МНОГО ФАЙЛОВ. СКАЧАЙТЕ ZIP АРХИВ!
 </div>
 
-<!-- ── SESSION CONTROLS ────────────────────────────────── -->
 <div class="session-controls" id="sessionControls" style="display:none">
   <button class="sc-btn sc-pause" onclick="togglePause()" id="btnPause">⏸ Пауза</button>
   <button class="sc-btn sc-stop" onclick="confirmStopSession()" id="btnStop">⏹ Стоп сессии</button>
 </div>
 
-<!-- ── BREADCRUMB ─────────────────────────────────────── -->
 <div class="breadcrumb" id="breadcrumb">
   <span style="color:var(--text3)">/</span>
   <span style="color:var(--text3)">нет активного стенда</span>
 </div>
 
-<!-- ── FEED ───────────────────────────────────────────── -->
 <div class="scroll-area" id="scrollArea">
   <div class="empty" id="emptyState">
     <div class="empty-icon">📦</div>
@@ -473,7 +466,6 @@
   </div>
 </div>
 
-<!-- ── ACTIONS ────────────────────────────────────────── -->
 <div class="actions">
   <div class="btn-row">
     <button class="btn btn-booth" onclick="startNewBooth()" id="btnBooth">＋ Стенд</button>
@@ -497,7 +489,6 @@
   </div>
 </div>
 
-<!-- ── STATUS BAR ─────────────────────────────────────── -->
 <div class="status-bar">
   <span class="status-dot" id="statusDot"></span>
   <span id="statusText">готов к работе</span>
@@ -507,13 +498,11 @@
 <input type="file" id="fileInput" accept="image/*" capture="environment">
 <input type="file" id="signInput" accept="image/*" capture="environment">
 
-<!-- ── LOADER OVERLAY ─────────────────────────────────── -->
 <div class="overlay" id="loaderOverlay" style="display:none; z-index: 400; background:rgba(0,0,0,0.95); align-items:center; justify-content:center;">
   <div style="color:var(--accent); font-family:var(--font-ui); font-size:24px; font-weight:bold; letter-spacing:1px;">УПАКОВКА АРХИВА...</div>
   <div style="font-size:12px; color:var(--text2); margin-top:10px;" id="loaderSub">Не закрывайте браузер</div>
 </div>
 
-<!-- ── CONFIRM CLEAR ──────────────────────────────────── -->
 <div class="confirm-overlay" id="confirmOverlay" style="display:none">
   <div class="confirm-box">
     <div class="confirm-title">⚠ Сбросить сессию?</div>
@@ -525,7 +514,6 @@
   </div>
 </div>
 
-<!-- ── CONFIRM STOP ───────────────────────────────────── -->
 <div class="confirm-overlay" id="confirmStopOverlay" style="display:none">
   <div class="confirm-box">
     <div class="confirm-title" style="color:var(--amber)">⏹ Завершить сессию?</div>
@@ -537,7 +525,18 @@
   </div>
 </div>
 
-<!-- ── HISTORY ────────────────────────────────────────── -->
+<div class="confirm-overlay" id="confirmSaveErrorOverlay" style="display:none">
+  <div class="confirm-box">
+    <div class="confirm-title" style="color:var(--orange)">⚠ Архив не сохранен</div>
+    <div class="confirm-text">Файлы остались в базе данных.<br>Что делаем дальше?</div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button class="btn" style="background:var(--blue); color:#fff; height:44px;" onclick="retryDownloadFromModal()">📦 Сохранить архив</button>
+      <button class="btn" style="background:var(--s2); color:var(--text); border:1px solid var(--border2); height:44px;" onclick="closeModal('confirmSaveErrorOverlay')" id="btnStayOnBooth">🔙 Продолжить на стенде</button>
+      <button class="btn" style="background:transparent; color:var(--text3); font-size:10px; height:30px;" onclick="forceStartNewBooth()">След. стенд (смешать файлы)</button>
+    </div>
+  </div>
+</div>
+
 <div class="history-overlay" id="historyOverlay" style="display:none">
   <div class="overlay-header">
     <div class="overlay-title">История</div>
@@ -546,7 +545,6 @@
   <div class="history-body" id="historyBody"></div>
 </div>
 
-<!-- ── SETTINGS ───────────────────────────────────────── -->
 <div class="settings-overlay" id="settingsOverlay" style="display:none">
   <div class="overlay-header">
     <div class="overlay-title">Настройки</div>
@@ -578,7 +576,7 @@
         <button class="btn-action btn-action-danger" onclick="confirmClearFromSettings()">🗑 Сброс</button>
       </div>
     </div>
-    <div class="settings-version" style="margin-top:20px;">EXPOCAPTURE v6 · прямая запись без превью</div>
+    <div class="settings-version" style="margin-top:20px;">EXPOCAPTURE v6.1 · прямая запись, web-share, offline</div>
   </div>
   <div class="settings-footer">
     <button class="btn btn-back" onclick="closeSettings()">← Назад</button>
@@ -587,7 +585,6 @@
 </div>
 
 <script>
-  
 // ── РЕГИСТРАЦИЯ SERVICE WORKER (ОФЛАЙН РЕЖИМ) ──────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -612,7 +609,7 @@ function closeModal(id) {
 }
 
 window.addEventListener('popstate', (e) => {
-  const modals = ['settingsOverlay', 'historyOverlay', 'confirmOverlay', 'confirmStopOverlay'];
+  const modals = ['settingsOverlay', 'historyOverlay', 'confirmOverlay', 'confirmStopOverlay', 'confirmSaveErrorOverlay'];
   modals.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = (e.state && e.state.modal === id) ? 'flex' : 'none';
@@ -958,15 +955,31 @@ function buildFilename(parts, ext) {
 
 // ── BOOTH LOGIC (AUTO ZIP) ─────────────────────────────
 async function startNewBooth() {
-  // Если уже есть активный стенд и файлы в БД - скачиваем ZIP перед переходом
   try {
     const files = await getFilesFromDB();
+    // Если есть текущий стенд и файлы - пробуем сохранить
     if (currentBooth() && files.length > 0) {
       document.getElementById('loaderSub').textContent = "Сохраняем файлы перед переходом...";
-      await downloadZip(true);
+      
+      const isSaved = await downloadZip(true); 
+      
+      // Если архив НЕ сохранился (пользователь отменил)
+      if (!isSaved) {
+        const currName = currentBooth().name;
+        document.getElementById('btnStayOnBooth').innerHTML = `🔙 Продолжить на: ${currName}`;
+        openModal('confirmSaveErrorOverlay'); // Показываем окно выбора
+        return; // Прерываем создание нового стенда!
+      }
     }
   } catch(e) {}
 
+  // Если всё сохранилось (или сохранять нечего) - создаем стенд
+  forceStartNewBooth();
+}
+
+function forceStartNewBooth() {
+  closeModal('confirmSaveErrorOverlay');
+  
   if (state.sessionStopped) { 
     state.sessionStopped = false; 
     state.pausedElapsed = 0; 
@@ -993,6 +1006,11 @@ async function startNewBooth() {
   
   showToast(`${name} открыт`); 
   setStatus(`стенд: ${name}`);
+}
+
+async function retryDownloadFromModal() {
+  closeModal('confirmSaveErrorOverlay');
+  await startNewBooth(); // Запускаем весь процесс заново
 }
 
 function newProduct() {
@@ -1140,7 +1158,7 @@ async function saveAudio() {
   setStatus('аудио сохранено');
 }
 
-  // ── ZIP DOWNLOAD ───────────────────────────────────────
+// ── ZIP DOWNLOAD (Web Share API) ───────────────────────
 async function downloadZip(isSwitchingBooth = false) {
   document.getElementById('loaderOverlay').style.display = 'flex';
   if (!isSwitchingBooth) {
@@ -1149,7 +1167,7 @@ async function downloadZip(isSwitchingBooth = false) {
   
   try {
     const files = await getFilesFromDB();
-    if (files.length === 0) return;
+    if (files.length === 0) return false;
 
     const zip = new JSZip();
     for (const f of files) zip.file(f.name, f.blob);
@@ -1161,20 +1179,17 @@ async function downloadZip(isSwitchingBooth = false) {
     const boothNameStr = currentBooth() ? currentBooth().name : 'Archive';
     const zipName = `${boothNameStr}_Часть_${state.zipPart || 1}.zip`;
     
-    // ── НОВЫЙ БЛОК СОХРАНЕНИЯ (Web Share API для iOS/Android) ──
     const fileForShare = new File([zipBlob], zipName, { type: "application/zip" });
     
-    // Проверяем, поддерживает ли телефон нативное окно "Поделиться" с файлами
     if (navigator.canShare && navigator.canShare({ files: [fileForShare] })) {
       try {
         await navigator.share({
           files: [fileForShare],
           title: zipName
         });
-        // Если юзер отменит окно, код сюда не дойдет (вылетит в catch ниже)
       } catch (err) {
         console.log("Сохранение отменено пользователем:", err);
-        return; // ВАЖНО: Прерываем функцию. БД не очистится, файлы не удалятся!
+        return false; // Возвращаем false при отмене
       }
     } else {
       // Запасной старый метод (для ПК и старых браузеров)
@@ -1185,9 +1200,8 @@ async function downloadZip(isSwitchingBooth = false) {
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 3000);
     }
-    // ────────────────────────────────────────────────────────────
 
-    // Очищаем базу данных ТОЛЬКО если сохранение не было отменено
+    // Очищаем базу данных ТОЛЬКО если сохранение прошло успешно
     await clearDB();
     
     if (!isSwitchingBooth) {
@@ -1196,8 +1210,11 @@ async function downloadZip(isSwitchingBooth = false) {
       save(); 
       updateUI();
     }
+    
+    return true; // Возвращаем true при успехе
   } catch (err) {
     alert('Ошибка архивации: ' + err.message);
+    return false; // Возвращаем false при ошибке
   } finally {
     document.getElementById('loaderOverlay').style.display = 'none';
   }
