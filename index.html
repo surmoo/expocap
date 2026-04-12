@@ -1218,34 +1218,18 @@ async function downloadZip(isSwitchingBooth = false) {
     const zipName = `${boothNameStr}_Часть_${state.zipPart || 1}.zip`;
     
     const fileForShare = new File([zipBlob], zipName, { type: "application/zip" });
-
-    // Вспомогательная функция для классического "тихого" скачивания архива
-    const triggerDirectDownload = () => {
-      const url = URL.createObjectURL(zipBlob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = zipName;
-      document.body.appendChild(a); // КРИТИЧНО ДЛЯ ANDROID: тег должен быть в DOM
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 3000);
-    };
     
-    if (navigator.canShare && navigator.canShare({ files: [fileForShare] })) {
-      try {
-        await navigator.share({ files: [fileForShare], title: zipName });
-      } catch (err) {
-        console.log("Share API прерван (вероятно истек жест юзера), пробуем скачивание:", err);
-        // Вместо "return false" (который вызывал окно ошибки) принудительно качаем файл
-        triggerDirectDownload();
-      }
-    } else {
-      // Если браузер вообще не поддерживает Web Share для файлов
-      triggerDirectDownload();
-    }
+    // Заменить блок с canShare/share в downloadZip на:
+    
+    // Прямое скачивание — работает надёжно на всех платформах
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = zipName;
+    document.body.appendChild(a);   // ← на Android без этого .click() может не сработать
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
 
     await clearDB();
     if (!isSwitchingBooth) {
