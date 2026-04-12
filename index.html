@@ -1202,46 +1202,55 @@ async function saveNote() {
 // ── ZIP DOWNLOAD ──
 async function downloadZip(isSwitchingBooth = false) {
   document.getElementById('loaderOverlay').style.display = 'flex';
-  if (!isSwitchingBooth) document.getElementById('loaderSub').textContent = "Не закрывайте браузер";
+  if (!isSwitchingBooth) document.getElementById('loaderSub').textContent = "Формируем архив...";
   
   try {
     const files = await getFilesFromDB();
-    if (files.length === 0) return false;
+    if (files.length === 0) {
+      document.getElementById('loaderOverlay').style.display = 'none';
+      return false;
+    }
 
     const zip = new JSZip();
     for (const f of files) zip.file(f.name, f.blob);
     const logText = files.map(f => f.name).join('\n');
     zip.file('file_list.txt', logText);
 
+    // Упаковываем файлы в один Blob
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     const boothNameStr = currentBooth() ? currentBooth().name : 'Archive';
     const zipName = `${boothNameStr}_Часть_${state.zipPart || 1}.zip`;
     
-    const fileForShare = new File([zipBlob], zipName, { type: "application/zip" });
-    
-    // Заменить блок с canShare/share в downloadZip на:
-    
-    // Прямое скачивание — работает надёжно на всех платформах
+    // Прямое скачивание 
     const url = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
-    a.href = url;
+    a.style.display = 'none';
+    a.href = url; 
     a.download = zipName;
-    document.body.appendChild(a);   // ← на Android без этого .click() может не сработать
+    
+    document.body.appendChild(a); // Обязательно для Android
     a.click();
-    document.body.removeChild(a);
+    document.body.removeChild(a); // Убираем за собой
+    
     setTimeout(() => URL.revokeObjectURL(url), 5000);
 
+    // Очищаем базу только если дошли до этого момента без ошибок
     await clearDB();
+    
     if (!isSwitchingBooth) {
       state.zipPart = (state.zipPart || 1) + 1;
       showToast(`✓ Память очищена (Часть ${state.zipPart - 1} скачана)`);
-      save(); updateUI();
+      save(); 
+      updateUI();
     }
-    return true; 
-  } catch (err) {
-    alert('Ошибка архивации: ' + err.message); return false; 
-  } finally {
+    
     document.getElementById('loaderOverlay').style.display = 'none';
+    return true; 
+    
+  } catch (err) {
+    document.getElementById('loaderOverlay').style.display = 'none';
+    alert('Ошибка при создании архива: ' + err.message); 
+    return false; 
   }
 }
 
