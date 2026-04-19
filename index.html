@@ -174,23 +174,57 @@
     50% { background: #6a0015; } 
   }
 
-  /* ── BREADCRUMB ── */
+  /* ── BREADCRUMB (двухстрочный, крупный) ── */
   .breadcrumb {
-    padding: 7px 16px;
-    font-size: 10px;
-    color: var(--text3);
+    padding: 10px 16px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     background: var(--s0);
     display: flex;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
+    gap: 3px;
+    font-family: var(--font-ui);
   }
-  .breadcrumb b { color: var(--text2); font-weight: 700; }
-  .bc-sep { color: var(--text3); }
+  .bc-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    min-height: 22px;
+  }
+  .bc-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+    line-height: 1;
+  }
+  .bc-name {
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+  }
+  .bc-booth-row .bc-name {
+    color: var(--accent);
+    font-size: 17px;
+  }
+  .bc-product-row .bc-name {
+    color: var(--orange);
+    font-size: 15px;
+  }
+  .bc-row.inactive .bc-name {
+    color: var(--text3);
+    font-weight: 400;
+    font-size: 12px;
+    font-style: italic;
+    letter-spacing: 0.5px;
+  }
+  .bc-row.inactive .bc-icon {
+    opacity: 0.3;
+  }
 
   /* ── FEED (MAIN AREA) ── */
   .scroll-area {
@@ -495,10 +529,16 @@
   <button class="sc-btn sc-stop" onclick="confirmStopSession()" id="btnStop">⏹ Стоп сессии</button>
 </div>
 
-<!-- ── BREADCRUMB ── -->
+<!-- ── BREADCRUMB (крупный, двухстрочный) ── -->
 <div class="breadcrumb" id="breadcrumb">
-  <span style="color:var(--text3)">/</span>
-  <span style="color:var(--text3)">нет активного стенда</span>
+  <div class="bc-row bc-booth-row inactive" id="bcBoothRow">
+    <span class="bc-icon">🏢</span>
+    <span class="bc-name" id="bcBoothName">нет активного стенда</span>
+  </div>
+  <div class="bc-row bc-product-row inactive" id="bcProductRow">
+    <span class="bc-icon">📦</span>
+    <span class="bc-name" id="bcProductName">нет активного товара</span>
+  </div>
 </div>
 
 <!-- ── FEED ── -->
@@ -603,6 +643,18 @@
   </div>
 </div>
 
+<!-- ── NEW DAY NOTIFICATION ── -->
+<div class="confirm-overlay" id="newDayOverlay" style="display:none">
+  <div class="confirm-box">
+    <div class="confirm-title" style="color:var(--accent)">☀ НОВЫЙ ДЕНЬ</div>
+    <div class="confirm-text" id="newDayBody" style="text-align:left; margin-bottom: 16px;">—</div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button class="btn-confirm" style="background:var(--accent); color:#000; border:none;" onclick="newDayArchiveAndReset()">📦 Скачать архив и начать новую</button>
+      <button class="btn-confirm" style="background:var(--s2); color:var(--text); border:1px solid var(--border2);" onclick="dismissNewDay()">▶ Продолжить старую сессию</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── NOTE OVERLAY ── -->
 <div class="overlay" id="noteOverlay" style="display:none; z-index: 500;">
   <div class="overlay-header">
@@ -665,7 +717,7 @@
     <button class="btn-reset-small" onclick="confirmResetFromSettings()">🗑 сбросить текущую сессию</button>
     
     <div class="settings-version" style="margin-top:20px; text-align:center; color:var(--text3); font-size:9px;">
-      EXPOCAPTURE v6.3 · grid-ui, text notes, web-share
+      EXPOCAPTURE v6.7 · history inside zip
     </div>
   </div>
   <div class="settings-footer">
@@ -782,7 +834,10 @@ let state = {
   sessionStopped: false,
   pausedElapsed: 0,
   pauseStartedAt: null,
-  zipPart: 1
+  zipPart: 1,
+  autoPaused: false,          // авто-пауза при скрытии вкладки
+  lastAutoPauseAt: null,      // момент начала авто-паузы (для измерения длительности)
+  newDayDismissedOn: null     // YYYY-MM-DD — день, когда пользователь нажал "Продолжить старую"
 };
 
 let mediaRecorder = null, audioChunks = [], audioMimeType = 'audio/webm', recTimerInterval = null;
@@ -865,12 +920,27 @@ async function updateUI() {
   document.getElementById('statProducts').textContent = state.booths.reduce((a,x)=>a+x.products.length,0);
   document.getElementById('statPhotos').textContent   = state.log.filter(x=>x.type==='photo'||x.type==='sign'||x.type==='card').length;
 
-  const bc = document.getElementById('breadcrumb');
+  // ── BREADCRUMB (крупный, двустрочный) ──
+  const bcBoothRow    = document.getElementById('bcBoothRow');
+  const bcBoothName   = document.getElementById('bcBoothName');
+  const bcProductRow  = document.getElementById('bcProductRow');
+  const bcProductName = document.getElementById('bcProductName');
+
   if (b) {
-    bc.innerHTML = `<span style="color:var(--text3)">/</span><b>${b.name}</b>`
-      + (p ? `<span class="bc-sep">/</span><b>${p.name}</b>` : `<span class="bc-sep">/</span><span style="color:var(--text3)">нет товара</span>`);
+    bcBoothName.textContent = b.name;
+    bcBoothRow.classList.remove('inactive');
+    if (p) {
+      bcProductName.textContent = p.name;
+      bcProductRow.classList.remove('inactive');
+    } else {
+      bcProductName.textContent = 'нет активного товара';
+      bcProductRow.classList.add('inactive');
+    }
   } else {
-    bc.innerHTML = `<span style="color:var(--text3)">/</span><span style="color:var(--text3)">нет активного стенда</span>`;
+    bcBoothName.textContent = 'нет активного стенда';
+    bcBoothRow.classList.add('inactive');
+    bcProductName.textContent = 'нет активного товара';
+    bcProductRow.classList.add('inactive');
   }
 
   const active = !!b && !state.sessionStopped && !state.sessionPaused;
@@ -961,6 +1031,7 @@ function stopSession() {
   closeModal('confirmStopOverlay');
   if (!state.sessionPaused) { state.pausedElapsed += Date.now() - new Date(state.pauseStartedAt || state.boothStartTime).getTime(); }
   state.sessionStopped = true; state.sessionPaused = false; 
+  state.autoPaused = false; state.lastAutoPauseAt = null;
   clearInterval(boothTimerInterval);
   
   const s = Math.floor(state.pausedElapsed / 1000);
@@ -970,6 +1041,58 @@ function stopSession() {
   setStatus('сессия завершена'); showToast('⏹ сессия завершена'); 
   save(); updateUI();
 }
+
+// ── AUTO-PAUSE ПРИ СКРЫТИИ ВКЛАДКИ ──
+// Ставит таймер стенда на паузу когда браузер свёрнут / вкладка неактивна.
+// Не трогает ручную паузу и не прерывает запись аудио.
+document.addEventListener('visibilitychange', () => {
+  const hasActiveSession = !!currentBooth() && !state.sessionStopped;
+  if (!hasActiveSession) return;
+  
+  const isRecording = mediaRecorder && mediaRecorder.state === 'recording';
+  
+  if (document.hidden) {
+    // Вкладка ушла из фокуса — автопауза
+    // Только если нет ручной паузы, не уже в автопаузе, и не идёт запись аудио
+    if (!state.sessionPaused && !state.autoPaused && !isRecording) {
+      state.pausedElapsed += Date.now() - new Date(state.pauseStartedAt || state.boothStartTime).getTime();
+      state.pauseStartedAt = null;
+      state.autoPaused = true;
+      state.lastAutoPauseAt = Date.now();
+      clearInterval(boothTimerInterval);
+      save();
+      // UI не обновляем — страница и так скрыта
+    }
+  } else {
+    // Вкладка вернулась — снимаем автопаузу (если она была и нет ручной)
+    if (state.autoPaused && !state.sessionPaused) {
+      const pauseDurSec = state.lastAutoPauseAt 
+        ? Math.max(0, Math.floor((Date.now() - state.lastAutoPauseAt) / 1000))
+        : 0;
+      
+      state.pauseStartedAt = tsISO();
+      state.autoPaused = false;
+      state.lastAutoPauseAt = null;
+      startBoothTimer();
+      save();
+      updateUI();
+      
+      // Короткие отвлечения не показываем, чтобы не шумело
+      if (pauseDurSec >= 2) {
+        const mm = Math.floor(pauseDurSec / 60);
+        const ss = pauseDurSec % 60;
+        const dur = mm > 0 ? `${mm}м ${ss}с` : `${ss}с`;
+        showToast(`▶ возобновлено (пауза ${dur})`, 1800);
+        setStatus(`стенд: ${currentBooth().name}`);
+      }
+      
+      // Если автопауза длилась ≥ 1 часа — возможно прошла ночь, проверим смену дня
+      if (pauseDurSec >= 3600) {
+        checkNewDay();
+      }
+    }
+  }
+});
 
 // ── UI BUILDERS ──
 function addCard(icon, name, meta, tag, cls) {
@@ -1199,6 +1322,105 @@ async function saveNote() {
   updateUI(); save(); showToast('✓ Заметка сохранена');
 }
 
+// ── ZIP FILENAME (уникальное имя: префикс + оператор + стенд + часть + timestamp) ──
+function buildZipFilename(boothNameStr, partNum) {
+  const op = getOperatorName();
+  const ts = tsFile(); // 2026-04-20T14-30-45 — гарантирует уникальность
+  const parts = ['ExpoCAP'];
+  if (op) parts.push(op);
+  parts.push(boothNameStr);
+  parts.push(`ч${partNum || 1}`);
+  parts.push(ts);
+  return parts.join('_') + '.zip';
+}
+
+// ── HISTORY EXPORT HELPERS ──
+// Полный снимок истории сессии — используется в ZIP-архиве И в ручном экспорте JSON
+function buildHistoryObject(filesInThisPart = null) {
+  return {
+    operator: getOperatorName() || null,
+    exportedAt: tsISO(),
+    zipPart: state.zipPart || 1,
+    activeBooth: currentBooth() ? currentBooth().name : null,
+    activeProduct: currentProduct() ? currentProduct().name : null,
+    stats: {
+      booths: state.booths.length,
+      products: state.booths.reduce((a,b) => a + b.products.length, 0),
+      entries: state.log.length
+    },
+    filesInThisPart: filesInThisPart,  // массив имён файлов в данном ZIP, или null
+    booths: state.booths,
+    log: state.log
+  };
+}
+
+// Человекочитаемая сводка по всей сессии
+function buildSessionSummary() {
+  const lines = [];
+  const op = getOperatorName();
+  const now = new Date();
+  const sep = '═══════════════════════════════════';
+  
+  lines.push(sep);
+  lines.push('  EXPOCAP — Сводка сессии');
+  lines.push(sep);
+  lines.push('');
+  if (op) lines.push(`Оператор:        ${op}`);
+  lines.push(`Экспорт:         ${now.toLocaleString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`);
+  lines.push(`Часть архива:    ${state.zipPart || 1}`);
+  lines.push(`Всего стендов:   ${state.booths.length}`);
+  lines.push(`Всего товаров:   ${state.booths.reduce((a,b) => a + b.products.length, 0)}`);
+  lines.push(`Всего записей:   ${state.log.length}`);
+  lines.push('');
+  
+  for (const b of state.booths) {
+    const d = new Date(b.ts);
+    lines.push(sep);
+    lines.push(`🏢 ${b.name}`);
+    lines.push(`   Открыт: ${d.toLocaleString('ru-RU')}`);
+    lines.push('');
+    
+    // Файлы на уровне стенда (таблички, визитки)
+    const boothSigns = state.log.filter(e => e.type === 'sign' && e.boothName === b.name);
+    const boothCards = state.log.filter(e => e.type === 'card' && e.boothName === b.name);
+    
+    for (const s of boothSigns) lines.push(`   🪧 Табличка: ${s.fname}`);
+    for (const c of boothCards) lines.push(`   💳 Визитка:  ${c.fname}`);
+    if (boothSigns.length || boothCards.length) lines.push('');
+    
+    // Товары и их содержимое
+    if (b.products.length === 0) {
+      lines.push(`   (нет товаров)`);
+      lines.push('');
+    } else {
+      for (const p of b.products) {
+        const pd = new Date(p.ts);
+        lines.push(`   📦 ${p.name}    ${pd.toLocaleTimeString('ru-RU')}`);
+        
+        const productLog = state.log.filter(e => 
+          e.boothName === b.name && e.productName === p.name
+        );
+        
+        if (productLog.length === 0) {
+          lines.push(`      (нет записей)`);
+        } else {
+          for (const entry of productLog) {
+            const icon = entry.type === 'photo' ? '📷'
+                       : entry.type === 'audio' ? '🎙'
+                       : entry.type === 'note'  ? '📝'
+                       : '·';
+            lines.push(`      ${icon} ${entry.fname}`);
+          }
+        }
+        lines.push('');
+      }
+    }
+  }
+  
+  lines.push(sep);
+  return lines.join('\n');
+}
+
 // ── ZIP DOWNLOAD ──
 async function downloadZip(isSwitchingBooth = false) {
   document.getElementById('loaderOverlay').style.display = 'flex';
@@ -1213,13 +1435,17 @@ async function downloadZip(isSwitchingBooth = false) {
 
     const zip = new JSZip();
     for (const f of files) zip.file(f.name, f.blob);
-    const logText = files.map(f => f.name).join('\n');
-    zip.file('file_list.txt', logText);
+    
+    // Файлы истории: машиночитаемая JSON + человекочитаемая сводка + простой список
+    const filenames = files.map(f => f.name);
+    zip.file('session.json', JSON.stringify(buildHistoryObject(filenames), null, 2));
+    zip.file('session_summary.txt', buildSessionSummary());
+    zip.file('file_list.txt', filenames.join('\n'));
 
     // Упаковываем файлы в один Blob
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     const boothNameStr = currentBooth() ? currentBooth().name : 'Archive';
-    const zipName = `${boothNameStr}_Часть_${state.zipPart || 1}.zip`;
+    const zipName = buildZipFilename(boothNameStr, state.zipPart || 1);
     
     // Прямое скачивание 
     const url = URL.createObjectURL(zipBlob);
@@ -1331,8 +1557,7 @@ function buildTreeItem(item) {
 }
 
 function exportHistoryJSON() {
-  const exportData = { booths: state.booths, log: state.log, exportedAt: tsISO() };
-  const dataStr = JSON.stringify(exportData, null, 2);
+  const dataStr = JSON.stringify(buildHistoryObject(), null, 2);
   const blob = new Blob([dataStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1346,7 +1571,7 @@ function confirmClear() { openModal('confirmOverlay'); }
 
 async function clearAll() {
   closeModal('confirmOverlay');
-  state = { booths:[], currentBoothIdx:-1, currentProductIdx:-1, log:[], boothCounter:0, productCounter:0, fileCounter:0, boothStartTime:null, sessionPaused:false, sessionStopped:false, pausedElapsed:0, pauseStartedAt:null, zipPart:1 };
+  state = { booths:[], currentBoothIdx:-1, currentProductIdx:-1, log:[], boothCounter:0, productCounter:0, fileCounter:0, boothStartTime:null, sessionPaused:false, sessionStopped:false, pausedElapsed:0, pauseStartedAt:null, zipPart:1, autoPaused:false, lastAutoPauseAt:null, newDayDismissedOn:null };
   localStorage.removeItem('expocap_v5');
   await clearDB();
   clearInterval(boothTimerInterval); 
@@ -1355,12 +1580,134 @@ async function clearAll() {
   rebuildFeed(); updateUI(); showToast('сессия сброшена'); setStatus('готов к работе');
 }
 
+// ── NEW DAY DETECTION ──
+// Если последняя активность была в другой день (вчера, неделю назад) — напоминаем
+// сохранить архив и начать свежую сессию.
+function dayStr(d) {
+  const dt = d instanceof Date ? d : new Date(d);
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
+function findLastActivityISO() {
+  let lastTs = state.boothStartTime || null;
+  for (const entry of state.log) {
+    if (!lastTs || entry.ts > lastTs) lastTs = entry.ts;
+  }
+  for (const b of state.booths) {
+    if (!lastTs || b.ts > lastTs) lastTs = b.ts;
+    for (const p of b.products) {
+      if (!lastTs || p.ts > lastTs) lastTs = p.ts;
+    }
+  }
+  return lastTs;
+}
+
+async function checkNewDay() {
+  if (!state.booths.length) return; // нет сессии — нечего напоминать
+  const lastTs = findLastActivityISO();
+  if (!lastTs) return;
+  
+  const lastDay = dayStr(lastTs);
+  const today = dayStr(new Date());
+  
+  if (lastDay === today) return;              // тот же день
+  if (state.newDayDismissedOn === today) return; // уже отмахнулся сегодня
+  
+  // Готовим содержимое модалки
+  const lastDateObj = new Date(lastTs);
+  const nowDate = new Date();
+  const prettyLast = lastDateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
+  const todayPretty = nowDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
+  
+  const boothCount = state.booths.length;
+  const logCount = state.log.length;
+  let filesInDB = 0;
+  try { filesInDB = (await getFilesFromDB()).length; } catch(e) {}
+  
+  const body = `
+    <div style="margin-bottom:10px;">
+      <div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Последняя активность</div>
+      <div style="font-size:13px;color:var(--text);font-weight:700;">${prettyLast}</div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Сегодня</div>
+      <div style="font-size:13px;color:var(--accent);font-weight:700;">${todayPretty}</div>
+    </div>
+    <div style="background:var(--s0); padding:10px 6px; border-radius:4px; margin-bottom:14px; display:flex; justify-content:space-around; text-align:center;">
+      <div><div style="color:var(--accent);font-weight:700;font-size:18px;line-height:1.1;">${boothCount}</div><div style="color:var(--text3);font-size:8px;text-transform:uppercase;margin-top:2px;">стендов</div></div>
+      <div><div style="color:var(--orange);font-weight:700;font-size:18px;line-height:1.1;">${logCount}</div><div style="color:var(--text3);font-size:8px;text-transform:uppercase;margin-top:2px;">записей</div></div>
+      <div><div style="color:var(--blue);font-weight:700;font-size:18px;line-height:1.1;">${filesInDB}</div><div style="color:var(--text3);font-size:8px;text-transform:uppercase;margin-top:2px;">в БД</div></div>
+    </div>
+    <div style="font-size:10px;color:var(--text2);line-height:1.6;text-align:center;">
+      Чтобы данные не смешались с сегодняшними,<br>сохраните архив и начните чистую сессию.
+    </div>
+  `;
+  
+  document.getElementById('newDayBody').innerHTML = body;
+  openModal('newDayOverlay');
+}
+
+function dismissNewDay() {
+  state.newDayDismissedOn = dayStr(new Date());
+  save();
+  closeModal('newDayOverlay');
+  showToast('продолжаем старую сессию');
+}
+
+async function newDayArchiveAndReset() {
+  // Сначала пытаемся скачать архив. Если не скачалось — не сбрасываем.
+  let filesInDB = 0;
+  try { filesInDB = (await getFilesFromDB()).length; } catch(e) {}
+  
+  if (filesInDB > 0) {
+    const ok = await downloadZip(false); // ZIP содержит и файлы, и session.json внутри
+    if (!ok) {
+      showToast('Архив не сохранён — сброс отменён');
+      return; // модалка остаётся открытой
+    }
+  } else if (state.booths.length > 0) {
+    // Файлов нет, но история есть — сохраняем её отдельным JSON, чтобы не потерять
+    exportHistoryJSON();
+  }
+  
+  // Полный сброс сессии
+  closeModal('newDayOverlay');
+  state = { 
+    booths:[], currentBoothIdx:-1, currentProductIdx:-1, log:[], 
+    boothCounter:0, productCounter:0, fileCounter:0, 
+    boothStartTime:null, sessionPaused:false, sessionStopped:false, 
+    pausedElapsed:0, pauseStartedAt:null, zipPart:1, 
+    autoPaused:false, lastAutoPauseAt:null, newDayDismissedOn:null
+  };
+  localStorage.removeItem('expocap_v5');
+  try { await clearDB(); } catch(e) {}
+  clearInterval(boothTimerInterval);
+  document.getElementById('statTimer').textContent = '—';
+  document.getElementById('statTimer').classList.remove('paused-timer');
+  rebuildFeed();
+  updateUI();
+  showToast('☀ новый день — чистая сессия');
+  setStatus('готов к работе');
+}
+
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', async () => {
   try { await initDB(); } catch(e) { showToast('Ошибка IndexedDB', 3000); }
   
   load();
   if (!state.zipPart) state.zipPart = 1;
+  
+  // Если вкладку убили во время auto-паузы — снимаем её, продолжаем со свежей точки отсчёта
+  if (state.autoPaused && !state.sessionPaused && !state.sessionStopped && state.boothStartTime) {
+    state.pauseStartedAt = tsISO();
+    state.autoPaused = false;
+    state.lastAutoPauseAt = null;
+    save();
+  }
+  
   rebuildFeed();
   
   if (state.boothStartTime && !state.sessionStopped && !state.sessionPaused) startBoothTimer();
@@ -1376,6 +1723,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Блокировка зума при двойном тапе
   document.ondblclick = (e) => e.preventDefault();
+
+  // Проверка: новый день? (показывает модалку, если последняя активность была в другой день)
+  checkNewDay();
 });
 </script>
 </body>
