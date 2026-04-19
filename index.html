@@ -717,7 +717,7 @@
     <button class="btn-reset-small" onclick="confirmResetFromSettings()">🗑 сбросить текущую сессию</button>
     
     <div class="settings-version" style="margin-top:20px; text-align:center; color:var(--text3); font-size:9px;">
-      EXPOCAPTURE v6.7 · history inside zip
+      EXPOCAPTURE v6.8 · proper zoom lock
     </div>
   </div>
   <div class="settings-footer">
@@ -1721,8 +1721,26 @@ window.addEventListener('DOMContentLoaded', async () => {
   else if (state.sessionStopped) setStatus('сессия завершена'); 
   else setStatus('готов к работе');
 
-  // Блокировка зума при двойном тапе
-  document.ondblclick = (e) => e.preventDefault();
+  // ── БЛОКИРОВКА ЗУМА ──
+  // touch-action: manipulation в CSS убирает 300мс-задержку, но не блокирует pinch
+  // двумя пальцами и не всегда блокирует double-tap. Добавляем JS-перехват.
+  
+  // 1. Pinch-zoom (multi-touch) — блокируется на Android и iOS
+  document.addEventListener('touchmove', function(e) {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+  
+  // 2. Double-tap zoom — надёжный перехват через touchend (а не dblclick, который срабатывает уже после зума)
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function(e) {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
+  
+  // 3. iOS Safari использует отдельные gesture-события
+  document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+  document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
 
   // Проверка: новый день? (показывает модалку, если последняя активность была в другой день)
   checkNewDay();
